@@ -528,9 +528,12 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
                 continue
             self.__nav_target = state
             navigation_steps = self.utg.get_navigation_steps(from_state=current_state, to_state=self.__nav_target)
-            if len(navigation_steps) > 0:
+            # syncxxx
+            if navigation_steps and len(navigation_steps) > 0:
                 self.__nav_num_steps = len(navigation_steps)
                 return state
+            else:
+                continue
 
         self.__nav_target = None
         self.__nav_num_steps = -1
@@ -597,7 +600,7 @@ class UtgReplayPolicy(InputPolicy):
                         if self.app.get_main_activity():
                             component += "/%s" % self.app.get_main_activity()
                         return IntentEvent(Intent(suffix=component))
-                    
+
                     self.logger.info("Replaying %s" % event_path)
                     self.event_idx = curr_event_idx
                     self.num_replay_tries = 0
@@ -605,7 +608,7 @@ class UtgReplayPolicy(InputPolicy):
                     event = InputEvent.from_dict(event_dict["event"])
                     self.last_state = self.current_state
                     self.last_event = event
-                    return event                    
+                    return event
 
             time.sleep(5)
 
