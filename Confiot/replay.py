@@ -71,6 +71,9 @@ class Confiot:
                 print("[ERR]: Wrong event path: ", event_str_path)
                 break
 
+        self.device.get_current_state()
+        print("[DBG]: Finish")
+
     def parse_event(self):
         events_path = droid_output + "/events/"
         events_json = os.listdir(events_path)
