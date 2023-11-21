@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR + "/../")
@@ -10,11 +11,11 @@ from droidbot.device import Device
 from droidbot.app import App
 from util import DirectedGraph, Node, Edge
 
-device_serial = "14131FDF600073"
-app_path = "/root/documents/droidbot-new/a2dp_2/a2dp.Vol_169.apk"
-droid_output = "/root/documents/droidbot-new/a2dp/"
+device_serial = "17291JECB10652"
+app_path = "/Users/tracy/Documents/workspaces/appUI/droidbot/apks/com.xiaomi.smarthome"
+droid_output = "/Users/tracy/Documents/github/droidbot/mihome/pixel5"
 
-Confiot_output = "/root/documents/droidbot-new/a2dp/Confiot"
+Confiot_output = "/Users/tracy/Documents/github/droidbot/Confiot"
 
 
 class Confiot:
@@ -31,6 +32,13 @@ class Confiot:
         self.app = App(app_path=app_path, output_dir=Confiot_output)
         # device.connect()
         self.device.install_app(self.app)
+
+    def device_screenshot(self, tag):
+        local_image_path = Confiot_output + "/screenshot_%s.png" % tag
+        remote_image_path = "/sdcard/screen_%s.png" % tag
+        self.device.adb.shell("screencap -p %s" % remote_image_path)
+        self.device.pull_file(remote_image_path, local_image_path)
+        self.device.adb.shell("rm %s" % remote_image_path)
 
     def device_stop_app(self):
         try:
@@ -60,12 +68,16 @@ class Confiot:
 
         self.device_stop_app()
         self.device.start_app(self.app)
+        # waiting for app start
+        time.sleep(5)
         for estr in event_str_path:
+            time.sleep(2)
             if (estr in self.events):
                 with open(self.events[estr], "r") as f:
                     event_dict = json.load(f)["event"]
                     event = InputEvent.from_dict(event_dict)
                     print("[DBG]: Action: " + estr)
+                    print(event)
                     event.send(self.device)
             else:
                 print("[ERR]: Wrong event path: ", event_str_path)
@@ -125,6 +137,8 @@ class Confiot:
             self.utg_graph.add_edge(Edge(utg_nodes[e["from"]], utg_nodes[e["to"]], event_strs))
 
         return self.utg_graph
+    
+
 
 
 def test_goto_state():
@@ -150,8 +164,39 @@ def test_stop_app():
     confiot.device_stop_app()
 
 
+def test_do_event():
+    confiot = Confiot()
+    confiot.device_connect()
+    confiot.parse_event()
+
+    confiot.device_stop_app()
+    confiot.device.start_app(confiot.app)
+    # waiting for app start
+    time.sleep(5)
+    count = 0
+
+    while (1):
+        event_str = input("event_str: ")
+        if (event_str == '\n' or event_str == ''):
+            confiot.device_stop_app()
+            break
+
+        with open(confiot.events[event_str], "r") as f:
+                    event_dict = json.load(f)["event"]
+                    event = InputEvent.from_dict(event_dict)
+                    print("[DBG]: Action: " + event_str)
+                    print(event)
+                    event.send(confiot.device)
+                    time.sleep(0.3) # to capture the alert
+                    confiot.device_screenshot(count)
+        count += 1
+    # TouchEvent(state=8f9faca9459fa27a8a33eb1a9da4cc07, view=e26dde88a959dcc2ab4d2f04eb1fb85a(PluginRNActivityCamera}/ImageView-))
+    # TouchEvent(state=8f9faca9459fa27a8a33eb1a9da4cc07, view=e26dde88a959dcc2ab4d2f04eb1fb85a(PluginRNActivityCamera}/ImageView-))
+
+
 if __name__ == "__main__":
-    test_stop_app()
+    # test_goto_state()
+    test_do_event()
 
     # path = confiot.utg_graph.find_shortest_path(confiot.utg_graph.start_node, "64f90b2eddcdefb5f3f4c902ebcba04e")
 
