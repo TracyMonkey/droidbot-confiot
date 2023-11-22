@@ -136,9 +136,72 @@ class Confiot:
             event_strs = [eve["event_str"] for eve in e["events"]]
             self.utg_graph.add_edge(Edge(utg_nodes[e["from"]], utg_nodes[e["to"]], event_strs))
 
-        return self.utg_graph
+        return self.utg_graph, edges_dict
     
+    def do_event(self): # input: event_str
+        count = 0
+        while (1):
+            event_str = input("event_str: ")
+            if (event_str == '\n' or event_str == ''):
+                self.device_stop_app()
+                break
 
+            with open(self.events[event_str], "r") as f:
+                        event_dict = json.load(f)["event"]
+                        event = InputEvent.from_dict(event_dict)
+                        print("[DBG]: Action: " + event_str)
+                        print(event)
+                        event.send(self.device)
+                        time.sleep(0.3) # to capture the alert
+                        self.device_screenshot(count)
+            count += 1
+    
+    def extract_conf_list(self):
+        # input: droid_output/utg.js -> edges
+        # output: conf_activity_dict (view_images, {event_id, event_str, {from_state, to_state}}, activity)
+        _, edges_dict = self.parse_utg()
+        conf_list = []
+        # {'from': '6578c97fcb7eb008507ccde68f80d360', 'to': 'ddd93f40628f40c0b4105d3cc0f69a26', 'id': '6578c97fcb7eb008507ccde68f80d360-->ddd93f40628f40c0b4105d3cc0f69a26', 'title': '<table class="table">\n<tr><th>1166</th><td>TouchEvent(state=6578c97fcb7eb008507ccde68f80d360, view=bba1713c7fb66a73d605cc227313a1cf(CustomTabActivity}/View-))</td></tr>\n</table>', 'label': '1166', 'events': [{'event_str': 'TouchEvent(state=6578c97fcb7eb008507ccde68f80d360, view=bba1713c7fb66a73d605cc227313a1cf(CustomTabActivity}/View-))', 'event_id': 1166, 'event_type': 'touch', 'view_images': ['views/view_bba1713c7fb66a73d605cc227313a1cf.png']}]}
+        # print(edges_dict)
+        for e in edges_dict:
+            conf_activity_dict = {}
+            if (e["events"] == []):
+                continue
+            
+            c = {}
+            for conf in conf_list:
+                if (e["events"][0]["view_images"] == conf["view_images"]):
+                    c = conf
+                    break
+            if c != {}:
+                continue
+
+            conf_activity_dict["view_images"] = e["events"][0]["view_images"]
+            conf_activity_dict["event_id"] = e["events"][0]["event_id"]
+            conf_activity_dict["event_str"] = e["events"][0]["event_str"]
+            conf_activity_dict["from_state"] = e["from"]
+            conf_activity_dict["to_state"] = e["to"]
+
+            if (e["events"][0]["event_str"].split("(")[0] == "KeyEvent"):
+                conf_activity_dict["activity"] = conf_list[-1]["activity"]
+            elif (len(e["events"][0]["event_str"].split("(")) < 3 ):
+                # IntentEvent: start and stop, skip
+                conf_activity_dict["activity"] = ''
+                continue
+            else:
+                conf_activity_dict["activity"] = e["events"][0]["event_str"].split("(")[2].split("}/")[0]
+
+            if (conf_activity_dict["activity"] == "ChooseDeviceActivity" or conf_activity_dict["activity"] == "ScanBarcodeActivity" or conf_activity_dict["activity"] == "ChooseSubCategoryDeviceActivity" or conf_activity_dict["activity"] == "WebShellActivity" or conf_activity_dict["activity"] == "MainActivity" or conf_activity_dict["activity"] == "ResolverActivity" or conf_activity_dict["activity"] == "HomeAllStyleListActivity" or conf_activity_dict["activity"] == "HomeStyleActivity" or conf_activity_dict["activity"] == "HomeRoomBackgroundPreviewActivity" or conf_activity_dict["activity"] == "HomeRoomBackgroundActivity" or conf_activity_dict["activity"] == "ImagePreviewActivity" or conf_activity_dict["activity"] == "LoginH5HomeAcvtivity" or conf_activity_dict["activity"] == "CustomTabActivity"):
+                continue
+
+            conf_list.append(conf_activity_dict)
+        print(conf_list)
+
+
+
+
+        
+        
 
 
 def test_goto_state():
@@ -173,30 +236,23 @@ def test_do_event():
     confiot.device.start_app(confiot.app)
     # waiting for app start
     time.sleep(5)
-    count = 0
 
-    while (1):
-        event_str = input("event_str: ")
-        if (event_str == '\n' or event_str == ''):
-            confiot.device_stop_app()
-            break
-
-        with open(confiot.events[event_str], "r") as f:
-                    event_dict = json.load(f)["event"]
-                    event = InputEvent.from_dict(event_dict)
-                    print("[DBG]: Action: " + event_str)
-                    print(event)
-                    event.send(confiot.device)
-                    time.sleep(0.3) # to capture the alert
-                    confiot.device_screenshot(count)
-        count += 1
+    confiot.do_event()
+    
     # TouchEvent(state=8f9faca9459fa27a8a33eb1a9da4cc07, view=e26dde88a959dcc2ab4d2f04eb1fb85a(PluginRNActivityCamera}/ImageView-))
     # TouchEvent(state=8f9faca9459fa27a8a33eb1a9da4cc07, view=e26dde88a959dcc2ab4d2f04eb1fb85a(PluginRNActivityCamera}/ImageView-))
+
+def test_extract_conf_list():
+    confiot = Confiot()
+    confiot.extract_conf_list()
 
 
 if __name__ == "__main__":
     # test_goto_state()
-    test_do_event()
+    # test_do_event()
+    test_extract_conf_list()
+
+    
 
     # path = confiot.utg_graph.find_shortest_path(confiot.utg_graph.start_node, "64f90b2eddcdefb5f3f4c902ebcba04e")
 
