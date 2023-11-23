@@ -28,13 +28,29 @@ class UIComparator:
         return formatted_xml
 
     # detect the added nodes
-    def UI_config_add(self, differences):
+    def get_UI_add(self, diff_html):
+        ui_adds = []
+        soup = BeautifulSoup(diff_html, 'html.parser')
+        for added_tag in soup.find_all(class_='diff_add'):
+            a = {'type': 'added', 'element': added_tag.text.strip()}
+            if (a["element"] == '' or a["element"] == 'Added'):
+                continue
+            ui_adds.append(a)
+        return ui_adds
 
-        pass
+    def get_UI_delete(self, diff_html):
+        ui_deletes = []
+        soup = BeautifulSoup(diff_html, 'html.parser')
+        for sub_tag in soup.find_all(class_='diff_sub'):
+            a = {'type': 'deleted', 'element': sub_tag.text.strip()}
+            if (a["element"] == '' or a["element"] == 'Deleted'):
+                continue
+            ui_deletes.append(a)
+        return ui_deletes
 
     def compare_xml_files(self, old_file, new_file):
-        self.compare_xml_files2(old_file, new_file,
-                                self.compare_output_path + self.first_option + "_to_" + self.second_option + ".html")
+        return self.compare_xml_files_with_difflib(
+            old_file, new_file, self.compare_output_path + self.first_option + "_to_" + self.second_option + ".html")
 
     def compare_xml_files_with_xmldiff(self, old_file, new_file):
         old_fp = None
@@ -51,7 +67,7 @@ class UIComparator:
         differences = xml_diff.diff_texts(old_fp,
                                           new_fp,
                                           diff_options={
-                                              "F": 0.1,
+                                              "F": 0.5,
                                               "ratio_mode": "accurate"
                                           },
                                           formatter=formatter)
@@ -72,14 +88,21 @@ class UIComparator:
             return
 
         diff = difflib.HtmlDiff()
-        html_diff = diff.make_file(old_fp, new_fp)
+        diff_html = diff.make_file(old_fp, new_fp)
 
         with open(output_file, 'w', encoding='UTF-8') as f:
-            f.write(html_diff)
+            f.write(diff_html)
+
+        return diff_html
 
 
 if __name__ == "__main__":
     comparator = UIComparator("A2DP_Start_at_Boot_off", "A2DP_Start_at_Boot_on")
 
-    comparator.compare_xml_files(comparator.old_hierarchy_path + "/819b47c5d517aba591f31b13343d5fde.xml",
-                                 comparator.new_hierarchy_path + "/819b47c5d517aba591f31b13343d5fde.xml")
+    diff_html = comparator.compare_xml_files(comparator.old_hierarchy_path + "/819b47c5d517aba591f31b13343d5fde.xml",
+                                             comparator.new_hierarchy_path + "/819b47c5d517aba591f31b13343d5fde.xml")
+
+    UI_add = comparator.get_UI_add(diff_html)
+    UI_delete = comparator.get_UI_delete(diff_html)
+
+    print(UI_add, UI_delete)
