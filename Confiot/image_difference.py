@@ -48,10 +48,12 @@ def identify_alert(image_path):
     else:
         return "unknown"
     
+def test_identify_alert():
+    # Path to your image
+    image_path_alert_test = "/Users/tracy/Documents/GitHub/droidbot/Confiot/screenshot_1.png"
+    image_path_no_alert_test = "/Users/tracy/Documents/GitHub/droidbot/mihome/pixel5/states/screen_2023-11-20_174510.   png"
+    result = identify_alert(image_path_no_alert_test)
 
-# Path to your image
-image_path_alert_test = "/Users/tracy/Documents/GitHub/droidbot/Confiot/screenshot_1.png"
-image_path_no_alert_test = "/Users/tracy/Documents/GitHub/droidbot/mihome/pixel5/states/screen_2023-11-20_174510.png"
-result = identify_alert(image_path_no_alert_test)
+    print(result)
 
-print(result)
+test_identify_alert()
