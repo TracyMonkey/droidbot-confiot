@@ -100,9 +100,8 @@ def find_views(img):
         if should_append:
             rectangle_list.append(new_rectangle)
 
-    result_rectangles = [
-        (int(float(x)/x_scale), int(float(y)/y_scale), int(float(w)/x_scale), int(float(h)/y_scale))
-        for x, y, w, h, len_approx in rectangle_list]
+    result_rectangles = [(int(float(x) / x_scale), int(float(y) / y_scale), int(float(w) / x_scale), int(float(h) / y_scale))
+                         for x, y, w, h, len_approx in rectangle_list]
 
     # For debugging, show the image
     # print result_rectangles
@@ -127,7 +126,7 @@ def calculate_dhash(img):
     hash_string = ""
     for index, value in enumerate(difference):
         if value:
-            decimal_value += value * (2 ** (index % 8))
+            decimal_value += value * (2**(index % 8))
         if index % 8 == 7:  # every eight binary bit to one hex number
             hash_string += str(hex(decimal_value)[2:-1].rjust(2, "0"))  # 0xf=>0x0f
             decimal_value = 0
