@@ -12,8 +12,8 @@ sys.path.append(BASE_DIR + "/../")
 from droidbot.input_event import *
 from droidbot.device import Device
 from droidbot.app import App
-from util import DirectedGraph, Node, Edge
-import settings
+from Confiot.util import DirectedGraph, Node, Edge
+import Confiot.settings
 
 
 class Confiot:
