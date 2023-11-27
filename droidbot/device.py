@@ -104,10 +104,9 @@ class Device(object):
             self.adapters[self.minicap] = False
 
         # minicap is not supporting android 32 and above
-        # syncxxx
-        # if self.get_sdk_version() >= 32:
-        #     self.logger.info("disable minicap on sdk >= 32")
-        #     self.adapters[self.minicap] = False
+        if self.get_sdk_version() >= 32:
+            self.logger.info("disable minicap on sdk >= 32")
+            self.adapters[self.minicap] = False
 
     def check_connectivity(self):
         """

@@ -193,7 +193,7 @@ class DeviceState(object):
         except Exception as e:
             self.device.logger.warning(e)
 
-    def save_view_img(self, view_dict, output_dir=None):
+    def save_view_img(self, view_dict, output_dir=None, file_path=None):
         try:
             if output_dir is None:
                 if self.device.output_dir is None:
@@ -209,6 +209,9 @@ class DeviceState(object):
                 view_file_path = "%s/view_%s.png" % (output_dir, view_str)
             if os.path.exists(view_file_path):
                 return
+            # syncxxx
+            if file_path is not None:
+                view_file_path = file_path
             from PIL import Image
             # Load the original image:
             view_bound = view_dict['bounds']
@@ -218,6 +221,7 @@ class DeviceState(object):
                 (min(original_img.width - 1, max(0, view_bound[0][0])), min(original_img.height - 1, max(0, view_bound[0][1])),
                  min(original_img.width, max(0, view_bound[1][0])), min(original_img.height, max(0, view_bound[1][1]))))
             view_img.convert("RGB").save(view_file_path)
+            return view_file_path
         except Exception as e:
             self.device.logger.warning(e)
 
@@ -413,11 +417,18 @@ class DeviceState(object):
         touch_exclude_view_ids = set()
         for view_dict in self.views:
             # syncxxx: 将左上角的相关图片送到gpt中查询是否是back按钮
-            import Confiot.gpt_test.gpt as gpt
-            self.save_view_img(view_dict, "./back_temp.png")
-            back = gpt.is_back_button("./back_temp.png")
-            if (back):
-                continue
+            # import Confiot.gpt_test.gpt as gpt
+            # filep = self.save_view_img(view_dict)
+            # print(filep)
+            # back = gpt.is_back_button(filep)
+            # if (back):
+            #     output_dir = os.path.join(self.device.output_dir, "BackButtons")
+            #     if not os.path.exists(output_dir):
+            #         os.makedirs(output_dir)
+            #     view_str = view_dict['view_str']
+            #     view_file_path = "%s/view_%s.png" % (output_dir, view_str)
+            #     self.save_view_img(view_dict, output_dir=view_file_path)
+            #     continue
 
             # exclude navigation bar if exists
             if self.__safe_dict_get(view_dict, 'enabled') and \
