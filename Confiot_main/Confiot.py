@@ -5,6 +5,7 @@
 import json
 import os
 import sys
+import copy
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR + "/../")
@@ -14,10 +15,10 @@ from droidbot.device import Device
 from droidbot.app import App
 from Confiot_main.util import DirectedGraph, Node, Edge
 import Confiot_main.settings as settings
-import xml.etree.ElementTree as ET
+from Confiot_main.UIComparator import UIComparator
 
 
-class Confiot:
+class ConfiotGuest:
 
     def __init__(self) -> None:
         self.device: Device = None
@@ -109,21 +110,24 @@ class Confiot:
     # return True if the config is enabled
     # return False if the config is possiblly be disabled
     def device_guest_config_test(self, host_analyzing_config: str, guest_config):
+
         conf_activity_dict = guest_config
         target_state = conf_activity_dict["from_state"]
         config_view_name = guest_config["view_images"]
         config_event = conf_activity_dict["event"]
         config_bounds = conf_activity_dict["bounds"]
-        config_bounds = f"[{config_bounds[0][0]},{config_bounds[0][1]}][{config_bounds[1][0]},{config_bounds[1][0]}]"
+        config_bounds = f"[{config_bounds[0][0]},{config_bounds[0][1]}][{config_bounds[1][0]},{config_bounds[1][1]}]"
+
+        print("[DBG]: {host}: " + host_analyzing_config + "{guest}: " + config_view_name)
 
         if (config_view_name == ''):
             print("[ERR]: Cannot find view image")
-            return False
+            return None
 
         finished = self.device_to_state(host_analyzing_config, target_state)
+        out_dir = settings.UI_output + f"/{host_analyzing_config}/guest:" + config_view_name
         if (finished):
             if (config_event is not None):
-                out_dir = settings.UI_output + f"/{host_analyzing_config}/" + config_view_name
                 self.device_get_UIElement(host_analyzing_config, target_state, out_dir, "/before.xml")
                 self.device_screenshot(out_dir + "/before.png")
                 time.sleep(1)
@@ -133,41 +137,16 @@ class Confiot:
                 self.device_screenshot(out_dir + "/after.png")
         else:
             print("[ERR]: Failed to goto target state to test config :", guest_config)
-            return False
+            return None
 
-        before_xml = ET.parse(out_dir + "/before.xml")
-        after_xml = ET.parse(out_dir + "/after.xml")
-
-        before_root = before_xml.getroot()
-        after_root = after_xml.getroot()
-
-        print("[DBG]: Find config in bounds: ", config_bounds)
-        before_config_node = before_root.findall(f".//*[@bounds='{config_bounds}']")
-        after_config_node = after_root.findall(f".//*[@bounds='{config_bounds}']")
-
-        if (before_config_node == []):
-            print("[ERR]: Cannot find config in before state")
-            return True
-        elif (before_config_node != [] and after_config_node == []):
-            # TODO: 可能跳转到别的activity中了，一般是表示这个config是成功进行的，有没有别的情况？
-            return True
-        elif (before_config_node != [] and after_config_node != [] and len(before_config_node) == 1 and
-              len(after_config_node) == 1):
-            before_node = before_config_node[0]
-            after_node = after_config_node[0]
-
-            is_disabled = True
-            if (before_node.attrib["checkable"]):
-                if (before_node.attrib["checked"] != after_node.attrib["checked"]):
-                    is_disabled = False
-
-            ret = not is_disabled
-            return ret
+        if (os.path.exists(out_dir + "/before.xml") and os.path.exists(out_dir + "/after.xml")):
+            return UIComparator.compare_xml_files_with_bounds(out_dir + "/before.xml", out_dir + "/after.xml", config_bounds)
         else:
-            print("[ERR]: Find more than one config node: ", before_config_node, after_config_node)
-            return True
-        # for node in bounds_related_nodes:
-        #     print(ET.tostring(node, encoding='unicode'))
+            print("[ERR]: Failed to generate UI hierachy for: ", guest_config)
+            return None
+
+    def device_guest_config_walker(self, host_analyzing_config: str):
+        pass
 
     ###############################################################
     ###############################################################
@@ -233,6 +212,7 @@ class Confiot:
         conf_list = []
         # {'from': '6578c97fcb7eb008507ccde68f80d360', 'to': 'ddd93f40628f40c0b4105d3cc0f69a26', 'id': '6578c97fcb7eb008507ccde68f80d360-->ddd93f40628f40c0b4105d3cc0f69a26', 'title': '<table class="table">\n<tr><th>1166</th><td>TouchEvent(state=6578c97fcb7eb008507ccde68f80d360, view=bba1713c7fb66a73d605cc227313a1cf(CustomTabActivity}/View-))</td></tr>\n</table>', 'label': '1166', 'events': [{'event_str': 'TouchEvent(state=6578c97fcb7eb008507ccde68f80d360, view=bba1713c7fb66a73d605cc227313a1cf(CustomTabActivity}/View-))', 'event_id': 1166, 'event_type': 'touch', 'view_images': ['views/view_bba1713c7fb66a73d605cc227313a1cf.png']}]}
         # print(edges_dict)
+        cid = 0
         for e in utg_edges_dict:
             conf_activity_dict = {}
             if (e["events"] == []):
@@ -289,6 +269,16 @@ class Confiot:
                     conf_activity_dict["activity"] == "CustomTabActivity"):
                 continue
 
+            conf_activity_dict["cid"] = cid
+            cid += 1
             conf_list.append(conf_activity_dict)
+
         self.conf_list = conf_list
+        conf_list_printable = copy.deepcopy(conf_list)
+        for c in conf_list_printable:
+            c["event"] = None
+
+        json_str = json.dumps(conf_list_printable)
+        with open(settings.Confiot_output + "/guest_config_list.json", "w") as f:
+            f.write(json_str)
         #print(conf_list)

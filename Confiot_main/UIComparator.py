@@ -2,6 +2,7 @@ import difflib
 import xml.dom.minidom
 import xmldiff.main as xml_diff
 import Confiot_main.settings as settings
+import xml.etree.ElementTree as ET
 import os
 
 from xmldiff import formatting
@@ -57,6 +58,43 @@ class UIComparator:
                 continue
             ui_deletes.append(a)
         return ui_deletes
+
+    @staticmethod
+    def compare_xml_files_with_bounds(file1, file2, bounds):
+        # 目前只判断了checkable的情况，如果点击后无效UI property没有变化，则证明该配置无效
+        before_xml = ET.parse(file1)
+        after_xml = ET.parse(file2)
+
+        before_root = before_xml.getroot()
+        after_root = after_xml.getroot()
+
+        print("[DBG]: Finding config in bounds: ", bounds)
+        before_config_node = before_root.findall(f".//*[@bounds='{bounds}']")
+        after_config_node = after_root.findall(f".//*[@bounds='{bounds}']")
+
+        if (before_config_node == []):
+            print("[ERR]: Cannot find config in before state")
+            return True
+        elif (before_config_node != [] and after_config_node == []):
+            # [TODO-confiot-11.29]: 可能跳转到别的activity中了，一般是表示这个config是成功进行的，有没有别的情况？
+            return True
+        elif (before_config_node != [] and after_config_node != [] and len(before_config_node) == 1 and
+              len(after_config_node) == 1):
+            before_node = before_config_node[0]
+            after_node = after_config_node[0]
+
+            is_disabled = True
+            if (before_node.attrib["checkable"]):
+                if (before_node.attrib["checked"] != after_node.attrib["checked"]):
+                    is_disabled = False
+
+            ret = not is_disabled
+            return ret
+        else:
+            print("[ERR]: Find more than one config node: ", before_config_node, after_config_node)
+            return True
+        # for node in bounds_related_nodes:
+        #     print(ET.tostring(node, encoding='unicode'))
 
     def compare_xml_files(self, old_file, new_file):
         return self.compare_xml_files_with_difflib(

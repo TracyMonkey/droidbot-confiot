@@ -1,4 +1,4 @@
-from Confiot_main.Confiot import Confiot
+from Confiot_main.Confiot import ConfiotGuest
 import xml.etree.ElementTree as ET
 
 # For test
@@ -6,7 +6,7 @@ HOST_CONFIG_ANALYZED = "host:A2DP_Start_at_Boot_off"
 
 
 def test_goto_state():
-    confiot = Confiot()
+    confiot = ConfiotGuest()
     confiot.device_connect()
 
     confiot.parse_event()
@@ -22,14 +22,14 @@ def test_goto_state():
 
 
 def test_stop_app():
-    confiot = Confiot()
+    confiot = ConfiotGuest()
     confiot.device_connect()
 
     confiot.device_stop_app()
 
 
 def test_state_walker():
-    confiot = Confiot()
+    confiot = ConfiotGuest()
     confiot.device_connect()
 
     confiot.parse_event()
@@ -40,8 +40,8 @@ def test_state_walker():
 
 
 def test_config_extract():
-    confiot = Confiot()
-    confiot.device_connect()
+    confiot = ConfiotGuest()
+    #confiot.device_connect()
 
     confiot.parse_event()
     # print(confiot.events)
@@ -51,7 +51,7 @@ def test_config_extract():
 
 
 def test_guest_config_dynamic_analyze():
-    confiot = Confiot()
+    confiot = ConfiotGuest()
     confiot.device_connect()
 
     confiot.parse_event()
@@ -59,8 +59,8 @@ def test_guest_config_dynamic_analyze():
     confiot.parse_utg()
     confiot.parse_conf_list()
 
-    print(confiot.conf_list[0])
-    confiot.device_guest_config_test(HOST_CONFIG_ANALYZED, confiot.conf_list[0])
+    print(confiot.conf_list[44])
+    print(confiot.device_guest_config_test(HOST_CONFIG_ANALYZED, confiot.conf_list[44]))
 
 
 def test_xml_parse():
@@ -86,4 +86,4 @@ def test_xml_parse():
 
 
 if __name__ == "__main__":
-    test_xml_parse()
+    test_guest_config_dynamic_analyze()
