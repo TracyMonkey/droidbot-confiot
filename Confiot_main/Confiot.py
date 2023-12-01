@@ -13,7 +13,7 @@ sys.path.append(BASE_DIR + "/../")
 from droidbot.input_event import *
 from droidbot.device import Device
 from droidbot.app import App
-from Confiot_main.util import DirectedGraph, Node, Edge
+from Confiot_main.util import DirectedGraph, Node, Edge, draw_rect_with_bounds
 import Confiot_main.settings as settings
 from Confiot_main.UIComparator import UIComparator
 
@@ -27,6 +27,73 @@ class ConfiotGuest:
         # {"event_str": event_json_path}
         self.events = {}
         self.conf_list = []
+        '''
+        # the result that indicates the influence of the config `host_analyzing_config`
+        {
+            "id":0,
+            "influenceType": CONFIG_DISABLED,
+            "content" : {}
+        }
+        '''
+        self.result = []
+
+        print("Analyzing the app: ", settings.app_path)
+        print("Device serial: ", settings.device_serial)
+
+    # walk through all states and store the UI hierachy in UI/
+    def device_state_walker(self, host_analyzing_config: str):
+        STEP1 = '''
+###################################
+### Traverse static UI states #####
+###################################
+'''
+        print(STEP1)
+        for node in self.utg_graph.nodes:
+            finished = self.device_to_state(host_analyzing_config, node.name)
+            if (finished):
+                self.device_get_UIElement(host_analyzing_config, node.name)
+
+    # get all configurations list and test them one by one
+    def device_guest_config_walker(self, host_analyzing_config: str):
+        # test all configs in conf_list and genreate UI hierachy and screenshots
+        STEP2 = '''
+###################################
+### Testing guest configs #########
+###################################
+'''
+        print(STEP2)
+        for conf in self.conf_list:
+            enabled = self.device_guest_config_test(host_analyzing_config, conf)
+            if (not enabled):
+                infl = {}
+                infl["id"] = len(self.conf_list)
+                infl["influenceType"] = settings.CONFIG_DISABLED
+                infl["content"] = {}
+                infl["content"]["view"] = conf["view_images"]
+                infl["content"]["state"] = conf["from_state"]
+                self.result.append(infl)
+
+    # analyze the state transition screenshots of the configs in conf_list with gpt
+    def device_guest_config_GPTAnalyze(self, host_analyzing_config: str):
+        STEP3 = '''
+###################################
+### Testing guest configs with GPT#
+###################################
+'''
+        print(STEP3)
+        for conf in self.conf_list:
+            out_dir = settings.UI_output + f"/{host_analyzing_config}/guest:" + conf["view_images"]
+            if (os.path.exists(out_dir + "/before.png") and os.path.exists(out_dir + "/after.png")):
+                time.sleep(1)
+                ret = UIComparator.identify_alert(out_dir + "/before.png", out_dir + "/after.png")
+                if (ret == "fail"):
+                    infl = {}
+                    infl["id"] = len(self.conf_list)
+                    infl["influenceType"] = settings.CONFIG_DISABLED
+                    infl["content"] = {}
+                    infl["content"]["view"] = conf["view_images"]
+                    infl["content"]["state"] = conf["from_state"]
+                    self.result.append(infl)
 
     def device_connect(self):
         self.device = Device(device_serial=settings.device_serial, ignore_ad=True)
@@ -98,19 +165,12 @@ class ConfiotGuest:
                 print("[ERR]: Wrong event path: ", event_str_path)
                 return False
 
-        print("[DBG]: Finish state: " + target_state + "\n")
+        print("[DBG]: Reached state: " + target_state)
         return True
-
-    def device_state_walker(self, host_analyzing_config: str):
-        for node in self.utg_graph.nodes:
-            finished = self.device_to_state(host_analyzing_config, node.name)
-            if (finished):
-                self.device_get_UIElement(host_analyzing_config, node.name)
 
     # return True if the config is enabled
     # return False if the config is possiblly be disabled
     def device_guest_config_test(self, host_analyzing_config: str, guest_config):
-
         conf_activity_dict = guest_config
         target_state = conf_activity_dict["from_state"]
         config_view_name = guest_config["view_images"]
@@ -130,6 +190,7 @@ class ConfiotGuest:
             if (config_event is not None):
                 self.device_get_UIElement(host_analyzing_config, target_state, out_dir, "/before.xml")
                 self.device_screenshot(out_dir + "/before.png")
+                draw_rect_with_bounds(out_dir + "/before.png", conf_activity_dict["bounds"])
                 time.sleep(1)
                 config_event.send(self.device)
                 time.sleep(3)
@@ -144,9 +205,6 @@ class ConfiotGuest:
         else:
             print("[ERR]: Failed to generate UI hierachy for: ", guest_config)
             return None
-
-    def device_guest_config_walker(self, host_analyzing_config: str):
-        pass
 
     ###############################################################
     ###############################################################
@@ -186,7 +244,7 @@ class ConfiotGuest:
                         break
 
         if (utg_nodes_dict != [] and utg_edges_dict != [] and self.utg_graph.start_node is not None):
-            print("[DBG]: Start state: " + self.utg_graph.start_node)
+            print("Start state: " + self.utg_graph.start_node)
         else:
             print("[ERR]: Cannot find start state")
             return None
@@ -245,6 +303,10 @@ class ConfiotGuest:
                     conf_activity_dict["event"] = event
                     if ("view" in event_dict):
                         conf_activity_dict["bounds"] = event_dict["view"]["bounds"]
+
+            if (conf_activity_dict["bounds"] is None):
+                # print("[ERR]: Cannot find view bounds for event: ", conf_activity_dict["event_str"])
+                continue
 
             if (e["events"][0]["event_str"].split("(")[0] == "KeyEvent"):
                 conf_activity_dict["activity"] = conf_list[-1]["activity"]

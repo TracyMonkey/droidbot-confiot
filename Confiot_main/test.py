@@ -1,5 +1,7 @@
 from Confiot_main.Confiot import ConfiotGuest
 import xml.etree.ElementTree as ET
+from Confiot_main.UIComparator import UIComparator
+import os
 
 # For test
 HOST_CONFIG_ANALYZED = "host:A2DP_Start_at_Boot_off"
@@ -85,5 +87,30 @@ def test_xml_parse():
         print(ET.tostring(node, encoding='unicode'))
 
 
+def test_identify_alert():
+    os.environ["https_proxy"] = "http://192.168.72.1:1083"
+    before_image_path = "/root/documents/droidbot-new/a2dp/Confiot/UI/host:A2DP_Start_at_Boot_off/guest:view_80907fa95fc546d10b3034979424ff23.png/before.png"
+    after_image_path_test1 = "/root/documents/droidbot-new/a2dp/Confiot/UI/host:A2DP_Start_at_Boot_off/guest:view_80907fa95fc546d10b3034979424ff23.png/after.png"
+    # image_path_no_alert_test = "/Users/tracy/Documents/GitHub/droidbot/mihome/pixel5/states/screen_2023-11-20_174510.png"
+    print(UIComparator.identify_alert(before_image_path, before_image_path))
+
+
+def test_device_guest_config_walker():
+    os.environ["https_proxy"] = "http://192.168.72.1:1083"
+
+    confiot = ConfiotGuest()
+    confiot.device_connect()
+
+    confiot.parse_event()
+    # print(confiot.events)
+    confiot.parse_utg()
+    confiot.parse_conf_list()
+
+    #confiot.device_guest_config_walker(HOST_CONFIG_ANALYZED)
+    confiot.device_guest_config_GPTAnalyze(HOST_CONFIG_ANALYZED)
+
+    print(confiot.result)
+
+
 if __name__ == "__main__":
-    test_guest_config_dynamic_analyze()
+    test_device_guest_config_walker()
