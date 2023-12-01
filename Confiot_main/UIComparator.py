@@ -194,13 +194,16 @@ class UIComparator:
 
         # print(response.json()["choices"][0]["message"]["content"])
 
-        if ("succeed" in response.json()["choices"][0]["message"]["content"]) or (
-                "Succeed" in response.json()["choices"][0]["message"]["content"]):
-            return "succeed"
-        elif ("fail" in response.json()["choices"][0]["message"]["content"]) or (
-                "Fail" in response.json()["choices"][0]["message"]["content"]):
-            return "fail"
-        else:
+        try:
+            if ("succeed" in response.json()["choices"][0]["message"]["content"]) or (
+                    "Succeed" in response.json()["choices"][0]["message"]["content"]):
+                return "succeed"
+            elif ("fail" in response.json()["choices"][0]["message"]["content"]) or (
+                    "Fail" in response.json()["choices"][0]["message"]["content"]):
+                return "fail"
+            else:
+                return "unknown"
+        except Exception as e:
             return "unknown"
 
 

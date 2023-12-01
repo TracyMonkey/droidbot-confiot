@@ -106,7 +106,8 @@ def test_device_guest_config_walker():
     confiot.parse_utg()
     confiot.parse_conf_list()
 
-    #confiot.device_guest_config_walker(HOST_CONFIG_ANALYZED)
+    confiot.device_state_walker(HOST_CONFIG_ANALYZED)
+    confiot.device_guest_config_walker(HOST_CONFIG_ANALYZED)
     confiot.device_guest_config_GPTAnalyze(HOST_CONFIG_ANALYZED)
 
     print(confiot.result)
