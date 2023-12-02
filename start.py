@@ -122,6 +122,7 @@ def parse_args():
                         action="store",
                         dest="replay_output",
                         help="The droidbot output directory being replayed.")
+    parser.add_argument("-target_activity", action="store", dest="target_activity_name", required=False, help="Find the path to the activity that we want to start with, and search from that activity.")
     options = parser.parse_args()
     # print options
     return options
@@ -198,7 +199,8 @@ def main():
             master=opts.master,
             humanoid=opts.humanoid,
             ignore_ad=opts.ignore_ad,
-            replay_output=opts.replay_output)
+            replay_output=opts.replay_output,
+            target_activity_name=opts.target_activity_name)
         droidbot.start()
     return
 

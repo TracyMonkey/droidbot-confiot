@@ -52,6 +52,41 @@ class InputPolicy(object):
         self.app = app
         self.action_count = 0
         self.master = None
+    
+    def start_to_activity(self, input_manager):
+        """
+        start producing events
+        :param input_manager: instance of InputManager
+        """
+        self.action_count = 0
+        while input_manager.enabled and self.action_count < input_manager.event_count:
+            try:
+                # # make sure the first event is go to HOME screen
+                # # the second event is to start the app
+                # if self.action_count == 0 and self.master is None:
+                #     event = KeyEvent(name="HOME")
+                # elif self.action_count == 1 and self.master is None:
+                #     event = IntentEvent(self.app.get_start_intent())
+                if self.action_count == 0 and self.master is None:
+                    event = KillAppEvent(app=self.app)
+                else:
+                    event = self.generate_event()
+                    print("Generate event: %s" % event)
+                    input_manager.add_event(event)
+            except KeyboardInterrupt:
+                break
+            except InputInterruptedException as e:
+                self.logger.warning("stop sending events: %s" % e)
+                break
+            # except RuntimeError as e:
+            #     self.logger.warning(e.message)
+            #     break
+            except Exception as e:
+                self.logger.warning("exception during sending events: %s" % e)
+                import traceback
+                traceback.print_exc()
+                continue
+            self.action_count += 1
 
     def start(self, input_manager):
         """
@@ -117,8 +152,9 @@ class UtgBasedInputPolicy(InputPolicy):
     state-based input policy
     """
 
-    def __init__(self, device, app, random_input):
+    def __init__(self, device, app, random_input, target_activity_name):
         super(UtgBasedInputPolicy, self).__init__(device, app)
+        self.target_activity_name = target_activity_name
         self.random_input = random_input
         self.script = None
         self.master = None
@@ -199,13 +235,14 @@ class UtgNaiveSearchPolicy(UtgBasedInputPolicy):
     depth-first strategy to explore UFG (old)
     """
 
-    def __init__(self, device, app, random_input, search_method):
+    def __init__(self, device, app, random_input, search_method, target_activity_name):
         super(UtgNaiveSearchPolicy, self).__init__(device, app, random_input)
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.explored_views = set()
         self.state_transitions = set()
         self.search_method = search_method
+        self.target_activity_name = target_activity_name
 
         self.last_event_flag = ""
         self.last_event_str = None
@@ -353,8 +390,8 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
     DFS/BFS (according to search_method) strategy to explore UFG (new)
     """
 
-    def __init__(self, device, app, random_input, search_method):
-        super(UtgGreedySearchPolicy, self).__init__(device, app, random_input)
+    def __init__(self, device, app, random_input, search_method, target_activity_name):
+        super(UtgGreedySearchPolicy, self).__init__(device, app, random_input, target_activity_name)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.search_method = search_method
 
@@ -369,6 +406,7 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
         self.__event_trace = ""
         self.__missed_states = set()
         self.__random_explore = False
+        self.target_activity_name = target_activity_name
 
     def generate_event_based_on_utg(self):
         """
