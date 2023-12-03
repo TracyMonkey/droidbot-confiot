@@ -53,12 +53,13 @@ class InputPolicy(object):
         self.action_count = 0
         self.master = None
     
-    def start_to_activity(self, input_manager):
+    def start_to_activity(self, input_manager, target_activity_name):
         """
         start producing events
         :param input_manager: instance of InputManager
         """
         self.action_count = 0
+        current_activity_name = ""
         while input_manager.enabled and self.action_count < input_manager.event_count:
             try:
                 # # make sure the first event is go to HOME screen
@@ -71,7 +72,24 @@ class InputPolicy(object):
                     event = KillAppEvent(app=self.app)
                 else:
                     event = self.generate_event()
-                    print("Generate event: %s" % event)
+                    event_str = event.get_event_str(self.device.get_current_state())
+                    
+                    current_activity_name = event_str.split("(")[0].split("}")
+                    # if (event_str.split("(")[0] == "KeyEvent"):
+                    #     current_activity_name = "unknown"
+                    if (len(event_str.split("(")) < 3 ):
+                        # IntentEvent: start and stop, skip
+                        current_activity_name = 'unknown'
+                    else:
+                        current_activity_name = event_str.split("(")[2].split("}/")[0]
+
+                    print("Generate event activity_name: %s" % current_activity_name)
+
+                if current_activity_name == target_activity_name:
+                    if (event_str.split("(")[0] == "KeyEvent"):
+                        print("skip\n")
+                        continue
+                else:
                     input_manager.add_event(event)
             except KeyboardInterrupt:
                 break

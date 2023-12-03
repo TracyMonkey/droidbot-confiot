@@ -118,7 +118,7 @@ class InputManager(object):
         try:
             if self.policy is not None:
                 if self.target_activity_name is not None:
-                    self.policy.start_to_activity(self)
+                    self.policy.start_to_activity(self, self.target_activity_name)
                 else:
                     self.policy.start(self)
             elif self.policy_name == POLICY_NONE:
