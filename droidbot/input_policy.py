@@ -86,9 +86,16 @@ class InputPolicy(object):
                     print("Generate event activity_name: %s" % current_activity_name)
 
                 if current_activity_name == target_activity_name:
+                    view_str = event_str.split(",")[1].split("(")[0]
+                    # Action: TouchEvent(state=320da521d69b2cde549f5149a249746a, view=3d8622531c57d469916832908fbcc912(EditDevice}/ImageButton-))
                     if (event_str.split("(")[0] == "KeyEvent"):
                         print("skip\n")
                         continue
+                    elif view_str == "3d8622531c57d469916832908fbcc912":
+                        print("skip\n")
+                        continue
+                    else:
+                        input_manager.add_event(event)
                 else:
                     input_manager.add_event(event)
             except KeyboardInterrupt:
