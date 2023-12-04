@@ -405,6 +405,20 @@ class DeviceState(object):
             depth += 1
         return -1
 
+    # [TODO-backbutton]: 这里是为了排除back按钮
+    def check_nearby_rectangles(self, rectangle, target_rectangle, threshold):
+        target_center_x = (target_rectangle[0][0] + target_rectangle[1][0]) / 2
+        target_center_y = (target_rectangle[0][1] + target_rectangle[1][1]) / 2
+
+        center_x = (rectangle[0][0] + rectangle[1][0]) / 2
+        center_y = (rectangle[0][1] + rectangle[1][1]) / 2
+
+        distance = math.sqrt((center_x - target_center_x)**2 + (center_y - target_center_y)**2)
+        if distance < threshold:
+            return True
+
+        return False
+
     def get_possible_input(self):
         """
         Get a list of possible input events for this state
@@ -430,13 +444,24 @@ class DeviceState(object):
             #     self.save_view_img(view_dict, output_dir=view_file_path)
             #     continue
 
+            # [TODO-backbutton]: 这里是为了排除back按钮，但是这个back按钮的resource_id是动态的，所以这里需要改进
+            back_baseline = [[39, 157], [119, 237]]
+
+            bounds = self.__safe_dict_get(view_dict, "bounds")
+            # print(bounds)
+            if (bounds and self.check_nearby_rectangles(rectangle=bounds, target_rectangle=back_baseline, threshold=50)):
+                print("[DBG]: Found back button:", back_baseline, bounds)
+                continue
+
             # exclude navigation bar if exists
             if self.__safe_dict_get(view_dict, 'enabled') and \
                     self.__safe_dict_get(view_dict, 'visible') and \
                     self.__safe_dict_get(view_dict, 'resource_id') not in \
                ['android:id/navigationBarBackground',
-                'android:id/statusBarBackground']:
+                'android:id/statusBarBackground',
+                ]:
                 enabled_view_ids.append(view_dict['temp_id'])
+
         # enabled_view_ids.reverse()
 
         for view_id in enabled_view_ids:

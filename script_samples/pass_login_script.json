@@ -1,8 +1,8 @@
 {
     "views": {
-        "login_email": {
-            "resource_id": ".*email",
-            "class": ".*EditText"
+        "scale_text": {
+            "resource_id": "com.xiaomi.smarthome:id/dgz",
+            "class": ".*TextView"
         },
         "login_password": {
             "resource_id": ".*password",
