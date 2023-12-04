@@ -60,6 +60,9 @@ class InputPolicy(object):
         """
         self.action_count = 0
         current_activity_name = ""
+        event_str = ""
+        view_str = ""
+        last_activity = ""
         while input_manager.enabled and self.action_count < input_manager.event_count:
             try:
                 # # make sure the first event is go to HOME screen
@@ -79,25 +82,25 @@ class InputPolicy(object):
                     #     current_activity_name = "unknown"
                     if (len(event_str.split("(")) < 3 ):
                         # IntentEvent: start and stop, skip
-                        current_activity_name = 'unknown'
+                        current_activity_name = last_activity
                     else:
                         current_activity_name = event_str.split("(")[2].split("}/")[0]
+                        last_activity = current_activity_name
 
                     print("Generate event activity_name: %s" % current_activity_name)
 
-                if current_activity_name == target_activity_name:
-                    view_str = event_str.split(",")[1].split("(")[0]
-                    # Action: TouchEvent(state=320da521d69b2cde549f5149a249746a, view=3d8622531c57d469916832908fbcc912(EditDevice}/ImageButton-))
-                    if (event_str.split("(")[0] == "KeyEvent"):
+                    if len(event_str.split(", view=")) > 1 :
+                        view_str = event_str.split(", view=")[1].split("(")[0]
+                    # Action: TouchEvent(state=320da521d69b2cde549f5149a249746a,    view=3d8622531c57d469916832908fbcc912(EditDevice}/ImageButton-))
+
+                    if (current_activity_name == target_activity_name) and (view_str ==     "3d8622531c57d469916832908fbcc912"):
                         print("skip\n")
                         continue
-                    elif view_str == "3d8622531c57d469916832908fbcc912":
+                    elif (current_activity_name == "unknown") and (event_str.split("(") [0] == "KeyEvent"):
                         print("skip\n")
                         continue
                     else:
                         input_manager.add_event(event)
-                else:
-                    input_manager.add_event(event)
             except KeyboardInterrupt:
                 break
             except InputInterruptedException as e:
