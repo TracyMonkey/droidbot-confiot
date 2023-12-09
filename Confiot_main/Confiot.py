@@ -85,7 +85,7 @@ class ConfiotGuest:
             out_dir = settings.UI_output + f"/{host_analyzing_config}/guest:" + conf["view_images"]
             if (os.path.exists(out_dir + "/before.png") and os.path.exists(out_dir + "/after.png")):
                 time.sleep(1)
-                ret = UIComparator.identify_alert(out_dir + "/before.png", out_dir + "/after.png")
+                ret = UIComparator.identify_alert(out_dir + "/before.png", out_dir + "/after.png", out_dir)
                 if (ret == "fail"):
                     infl = {}
                     infl["id"] = len(self.conf_list)
@@ -153,7 +153,7 @@ class ConfiotGuest:
 
         self.device_stop_app()
         self.device.start_app(self.app)
-        time.sleep(5)
+        time.sleep(3)
         for estr in event_str_path:
             if (estr in self.events):
                 with open(self.events[estr], "r") as f:
@@ -161,6 +161,7 @@ class ConfiotGuest:
                     event = InputEvent.from_dict(event_dict)
                     print("[DBG]: Action: " + estr)
                     event.send(self.device)
+                    time.sleep(2)
             else:
                 print("[ERR]: Wrong event path: ", event_str_path)
                 return False

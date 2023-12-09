@@ -148,7 +148,7 @@ class UIComparator:
         #     print(ET.tostring(node, encoding='unicode'))
 
     @staticmethod
-    def identify_alert(before_image_path, after_image_path):
+    def identify_alert(before_image_path, after_image_path, out_dir):
         # Function to encode the image
         def encode_image(image_path):
             with open(image_path, "rb") as image_file:
@@ -191,6 +191,9 @@ class UIComparator:
         }
 
         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+
+        with open(out_dir + "/gpt_resp.txt", 'w') as f:
+            f.write(response.text)
 
         # print(response.json()["choices"][0]["message"]["content"])
 

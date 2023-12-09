@@ -2,9 +2,10 @@ from Confiot_main.Confiot import ConfiotGuest
 import xml.etree.ElementTree as ET
 from Confiot_main.UIComparator import UIComparator
 import os
+import math
 
 # For test
-HOST_CONFIG_ANALYZED = "host:A2DP_Start_at_Boot_off"
+HOST_CONFIG_ANALYZED = "host:mihome_test_1"
 
 
 def test_goto_state():
@@ -95,6 +96,21 @@ def test_identify_alert():
     print(UIComparator.identify_alert(before_image_path, before_image_path))
 
 
+def check_nearby_rectangles(rectangle, target_rectangle, threshold):
+    target_center_x = (target_rectangle[0][0] + target_rectangle[1][0]) / 2
+    target_center_y = (target_rectangle[0][1] + target_rectangle[1][1]) / 2
+
+    center_x = (rectangle[0][0] + rectangle[1][0]) / 2
+    center_y = (rectangle[0][1] + rectangle[1][1]) / 2
+
+    distance = math.sqrt((center_x - target_center_x)**2 + (center_y - target_center_y)**2)
+    print(distance)
+    if distance < threshold:
+        return True
+
+    return False
+
+
 def test_device_guest_config_walker():
     os.environ["https_proxy"] = "http://192.168.72.1:1083"
 
@@ -115,3 +131,4 @@ def test_device_guest_config_walker():
 
 if __name__ == "__main__":
     test_device_guest_config_walker()
+    # test_goto_state()
