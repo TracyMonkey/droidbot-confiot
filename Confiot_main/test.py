@@ -1,11 +1,24 @@
+import os, sys
+import math
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR + "/../")
 from Confiot_main.Confiot import ConfiotGuest
 import xml.etree.ElementTree as ET
 from Confiot_main.UIComparator import UIComparator
-import os
-import math
 
 # For test
 HOST_CONFIG_ANALYZED = "host:mihome_test_1"
+
+
+def test_resize_png():
+    from Confiot_main.util import png_resize
+    png_resize(
+        "/root/documents/droidbot-new/a2dp/Confiot/UI/host:A2DP_Start_at_Boot_off/guest:view_0fe88b3189e686f7242ae495c9b79a4a.png/after.png",
+        230, 512)
+
+
+#####################################
 
 
 def test_goto_state():
@@ -51,19 +64,6 @@ def test_config_extract():
     confiot.parse_utg()
 
     confiot.parse_conf_list()
-
-
-def test_guest_config_dynamic_analyze():
-    confiot = ConfiotGuest()
-    confiot.device_connect()
-
-    confiot.parse_event()
-    # print(confiot.events)
-    confiot.parse_utg()
-    confiot.parse_conf_list()
-
-    print(confiot.conf_list[44])
-    print(confiot.device_guest_config_test(HOST_CONFIG_ANALYZED, confiot.conf_list[44]))
 
 
 def test_xml_parse():
@@ -130,5 +130,5 @@ def test_device_guest_config_walker():
 
 
 if __name__ == "__main__":
-    test_device_guest_config_walker()
-    # test_goto_state()
+    #test_device_guest_config_walker()
+    test_resize_png()

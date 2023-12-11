@@ -5,13 +5,13 @@ device_serial = "14131FDF600073"
 app_path = "/root/documents/droidbot-new/mihome/mihome.apk"
 droid_output = "/root/documents/droidbot-new/mihome/mihome-smartscale/result"
 
-UI_DIR = "/UI/"
-Comparation_DIR = "/Comparation/"
-BackButtons_DIR = "/BackButtons/"
-
 Confiot_output = f"{droid_output}/Confiot"
-UI_output = Confiot_output + "/UI"
-BackButtons_output = Confiot_output + "/BackButtons/"
+UI_output = Confiot_output + "/UI/"
+Static_comparation_output = Confiot_output + "/Comparation/"
+
+##### Screen Capture resolution for GPT ######
+resol_x = 230
+resol_y = 512
 
 ##### Influence Type ######
 CONFIG_DISABLED = 0

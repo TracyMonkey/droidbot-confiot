@@ -18,9 +18,9 @@ class UIComparator:
         self.Confiot_output = settings.Confiot_output
         self.first_option = first_option
         self.second_option = second_option
-        self.old_hierarchy_path = self.Confiot_output + settings.UI_DIR + first_option
-        self.new_hierarchy_path = self.Confiot_output + settings.UI_DIR + second_option
-        self.compare_output_path = self.Confiot_output + settings.Comparation_DIR
+        self.old_hierarchy_path = settings.UI_output + first_option
+        self.new_hierarchy_path = settings.UI_output + second_option
+        self.compare_output_path = settings.Static_comparation_output
         if (not os.path.exists(self.compare_output_path)):
             os.makedirs(self.compare_output_path)
 

@@ -13,7 +13,7 @@ sys.path.append(BASE_DIR + "/../")
 from droidbot.input_event import *
 from droidbot.device import Device
 from droidbot.app import App
-from Confiot_main.util import DirectedGraph, Node, Edge, draw_rect_with_bounds
+from Confiot_main.util import DirectedGraph, Node, Edge, draw_rect_with_bounds, png_resize
 import Confiot_main.settings as settings
 from Confiot_main.UIComparator import UIComparator
 
@@ -85,15 +85,20 @@ class ConfiotGuest:
             out_dir = settings.UI_output + f"/{host_analyzing_config}/guest:" + conf["view_images"]
             if (os.path.exists(out_dir + "/before.png") and os.path.exists(out_dir + "/after.png")):
                 time.sleep(1)
-                ret = UIComparator.identify_alert(out_dir + "/before.png", out_dir + "/after.png", out_dir)
-                if (ret == "fail"):
-                    infl = {}
-                    infl["id"] = len(self.conf_list)
-                    infl["influenceType"] = settings.CONFIG_DISABLED
-                    infl["content"] = {}
-                    infl["content"]["view"] = conf["view_images"]
-                    infl["content"]["state"] = conf["from_state"]
-                    self.result.append(infl)
+                # resize the images
+                before_png_resize = png_resize(out_dir + "/before.png", settings.resol_x, settings.resol_y)
+                after_png_resize = png_resize(out_dir + "/after.png", settings.resol_x, settings.resol_y)
+                if (before_png_resize != -1 and after_png_resize != -1 and os.path.exists(before_png_resize) and
+                        os.path.exists(after_png_resize)):
+                    ret = UIComparator.identify_alert(before_png_resize, after_png_resize, out_dir)
+                    if (ret == "fail"):
+                        infl = {}
+                        infl["id"] = len(self.conf_list)
+                        infl["influenceType"] = settings.CONFIG_DISABLED
+                        infl["content"] = {}
+                        infl["content"]["view"] = conf["view_images"]
+                        infl["content"]["state"] = conf["from_state"]
+                        self.result.append(infl)
 
     def device_connect(self):
         self.device = Device(device_serial=settings.device_serial, ignore_ad=True)
