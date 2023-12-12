@@ -3,7 +3,7 @@ import math
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR + "/../")
-from Confiot_main.Confiot import ConfiotGuest
+from Confiot_main.Confiot import ConfiotGuest, ConfiotHost
 import xml.etree.ElementTree as ET
 from Confiot_main.UIComparator import UIComparator
 
@@ -35,6 +35,7 @@ def test_goto_state():
             confiot.device_stop_app()
             break
         confiot.device_to_state(HOST_CONFIG_ANALYZED, target_str)
+        confiot.parse_all_views(confiot.device.get_current_state())
 
 
 def test_stop_app():
@@ -129,6 +130,34 @@ def test_device_guest_config_walker():
     print(confiot.result)
 
 
+def test_STEP0():
+    confiot = ConfiotGuest()
+    confiot.device_connect()
+
+    confiot.parse_event()
+    # print(confiot.events)
+    confiot.parse_utg()
+    confiot.parse_conf_list()
+
+    confiot.device_get_all_description_config()
+
+
+def test_host():
+    import Confiot_main.settings as settings
+    settings.device_serial = "192.168.31.218:5555"
+    confiot = ConfiotHost()
+    confiot.device_connect()
+
+    confiot.parse_event()
+    # print(confiot.events)
+    confiot.parse_utg()
+    confiot.parse_conf_list()
+
+    #confiot.generate_tasks()
+    confiot.start_autodroid()
+
+
 if __name__ == "__main__":
     #test_device_guest_config_walker()
-    test_resize_png()
+    # test_resize_png()
+    test_host()

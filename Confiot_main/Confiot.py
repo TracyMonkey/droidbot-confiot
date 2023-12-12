@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import copy
+import subprocess
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR + "/../")
@@ -13,12 +14,13 @@ sys.path.append(BASE_DIR + "/../")
 from droidbot.input_event import *
 from droidbot.device import Device
 from droidbot.app import App
+from droidbot.device_state import DeviceState
 from Confiot_main.util import DirectedGraph, Node, Edge, draw_rect_with_bounds, png_resize
 import Confiot_main.settings as settings
 from Confiot_main.UIComparator import UIComparator
 
 
-class ConfiotGuest:
+class Confiot:
 
     def __init__(self) -> None:
         self.device: Device = None
@@ -40,71 +42,44 @@ class ConfiotGuest:
         print("Analyzing the app: ", settings.app_path)
         print("Device serial: ", settings.device_serial)
 
-    # walk through all states and store the UI hierachy in UI/
-    def device_state_walker(self, host_analyzing_config: str):
-        STEP1 = '''
-###################################
-### Traverse static UI states #####
-###################################
-'''
-        print(STEP1)
-        for node in self.utg_graph.nodes:
-            finished = self.device_to_state(host_analyzing_config, node.name)
-            if (finished):
-                self.device_get_UIElement(host_analyzing_config, node.name)
-
-    # get all configurations list and test them one by one
-    def device_guest_config_walker(self, host_analyzing_config: str):
-        # test all configs in conf_list and genreate UI hierachy and screenshots
-        STEP2 = '''
-###################################
-### Testing guest configs #########
-###################################
-'''
-        print(STEP2)
-        for conf in self.conf_list:
-            enabled = self.device_guest_config_test(host_analyzing_config, conf)
-            if (not enabled):
-                infl = {}
-                infl["id"] = len(self.conf_list)
-                infl["influenceType"] = settings.CONFIG_DISABLED
-                infl["content"] = {}
-                infl["content"]["view"] = conf["view_images"]
-                infl["content"]["state"] = conf["from_state"]
-                self.result.append(infl)
-
-    # analyze the state transition screenshots of the configs in conf_list with gpt
-    def device_guest_config_GPTAnalyze(self, host_analyzing_config: str):
-        STEP3 = '''
-###################################
-### Testing guest configs with GPT#
-###################################
-'''
-        print(STEP3)
-        for conf in self.conf_list:
-            out_dir = settings.UI_output + f"/{host_analyzing_config}/guest:" + conf["view_images"]
-            if (os.path.exists(out_dir + "/before.png") and os.path.exists(out_dir + "/after.png")):
-                time.sleep(1)
-                # resize the images
-                before_png_resize = png_resize(out_dir + "/before.png", settings.resol_x, settings.resol_y)
-                after_png_resize = png_resize(out_dir + "/after.png", settings.resol_x, settings.resol_y)
-                if (before_png_resize != -1 and after_png_resize != -1 and os.path.exists(before_png_resize) and
-                        os.path.exists(after_png_resize)):
-                    ret = UIComparator.identify_alert(before_png_resize, after_png_resize, out_dir)
-                    if (ret == "fail"):
-                        infl = {}
-                        infl["id"] = len(self.conf_list)
-                        infl["influenceType"] = settings.CONFIG_DISABLED
-                        infl["content"] = {}
-                        infl["content"]["view"] = conf["view_images"]
-                        infl["content"]["state"] = conf["from_state"]
-                        self.result.append(infl)
-
     def device_connect(self):
-        self.device = Device(device_serial=settings.device_serial, ignore_ad=True)
+        self.device = Device(device_serial=settings.device_serial, ignore_ad=True, output_dir=settings.Confiot_output)
         self.app = App(app_path=settings.app_path, output_dir=settings.Confiot_output)
-        #self.device.connect()
+        self.device.connect()
         self.device.install_app(self.app)
+
+    # walk through all states and store the UI hierachy in UI/
+    def device_get_all_description_config(self):
+        STEP0 = '''
+######################################################################
+###    Traverse static UI states for configurations extraction   #####
+######################################################################
+'''
+        print(STEP0)
+        config_description_list = []
+        for node in self.utg_graph.nodes:
+            finished = self.device_to_state("", node.name)
+            if (finished):
+                try:
+                    configs = self.parse_all_views(self.device.get_current_state())
+                    config_description = {}
+                    config_description["state"] = node.name
+                    config_description["configs"] = []
+
+                    cid = 0
+                    for c in configs:
+                        cc = {}
+                        cc["cid"] = cid
+                        cid += 1
+                        cc["description"] = c
+                        config_description["configs"].append(cc)
+                    config_description_list.append(config_description)
+                except Exception as e:
+                    print(e)
+
+        json_str = json.dumps(config_description_list)
+        with open(settings.Confiot_output + "/config_description_list.json", "w") as f:
+            f.write(json_str)
 
     def device_get_UIElement(self, host_analyzing_config: str, current_state_str: str, store_path="", store_file=""):
         if (store_file == ''):
@@ -347,6 +322,209 @@ class ConfiotGuest:
             c["event"] = None
 
         json_str = json.dumps(conf_list_printable)
-        with open(settings.Confiot_output + "/guest_config_list.json", "w") as f:
+        with open(settings.Confiot_output + "/view_list.json", "w") as f:
             f.write(json_str)
         #print(conf_list)
+
+    def _scroll_to_top(self, scroller, all_views_for_mark, old_state=None):
+        prefix_scroll_event = []
+        if old_state is None:
+            old_state = self.device.get_current_state()
+        for _ in range(3):  # first scroll up to the top
+            self.device.send_event(ScrollEvent(view=scroller, direction="UP"))
+            scrolled_state = self.device.get_current_state()
+            old_state = scrolled_state
+            state_prompt, scrolled_candidate_actions, scrolled_views, _ = scrolled_state.get_described_actions()
+            scrolled_new_views = []  # judge whether there is a new view after scrolling
+            for scrolled_view in scrolled_views:
+                if scrolled_view not in all_views_for_mark:
+                    scrolled_new_views.append(scrolled_view)
+                    all_views_for_mark.append(scrolled_view)
+            if len(scrolled_new_views) == 0:
+                break
+
+            prefix_scroll_event.append(ScrollEvent(view=scroller, direction="UP"))
+        return prefix_scroll_event
+
+    def parse_all_views(self, current_state: DeviceState):
+        scrollable_views = current_state.get_scrollable_views()  #self._get_scrollable_views(current_state)
+
+        if len(scrollable_views) > 0:
+            '''
+            if there is at least one scroller in the screen, we scroll each scroller many times until all the screens after scrolling have been recorded, you do not need to read
+            '''
+            # print(scrollable_views)
+
+            actions_dict = {}
+            whole_state_views, whole_state_actions, whole_state_strs = [], [], []
+
+            # state_strs = [current_state.state_str]
+            state_prompt, current_candidate_actions, current_views, _ = current_state.get_described_actions()
+            all_views_for_mark = copy.deepcopy(
+                current_views)  # just for judging whether the screen has been scrolled up to the top
+
+            for scrollerid in range(len(scrollable_views)):
+                scroller = scrollable_views[scrollerid]
+                # prefix_scroll_event = []
+                actions_dict[scrollerid] = []
+
+                prefix_scroll_event = self._scroll_to_top(scroller, all_views_for_mark)
+
+                # after scrolling to the top, update the current_state
+                top_state = self.device.get_current_state()
+                state_prompt, top_candidate_actions, top_views, _ = top_state.get_described_actions()
+                all_views_without_id, all_actions = top_views, top_candidate_actions
+
+                too_few_item_time = 0
+
+                for _ in range(3):  # then scroll down to the bottom
+                    whole_state_strs.append(top_state.state_str)  # record the states from the top to the bottom
+                    self.device.send_event(ScrollEvent(view=scroller, direction="DOWN"))
+                    scrolled_state = self.device.get_current_state()
+                    state_prompt, scrolled_candidate_actions, scrolled_views, _ = scrolled_state.get_described_actions()
+
+                    scrolled_new_views = []
+                    for scrolled_view_id in range(len(scrolled_views)):
+                        scrolled_view = scrolled_views[scrolled_view_id]
+                        if scrolled_view not in all_views_without_id:
+                            scrolled_new_views.append(scrolled_view)
+                            all_views_without_id.append(scrolled_view)
+                            all_actions.append(
+                                prefix_scroll_event +
+                                [ScrollEvent(view=scroller, direction="DOWN"), scrolled_candidate_actions[scrolled_view_id]])
+                    # print('found new views:', scrolled_new_views)
+                    if len(scrolled_new_views) == 0:
+                        break
+
+                    prefix_scroll_event.append(ScrollEvent(view=scroller, direction="DOWN"))
+
+                    if len(scrolled_new_views) < 2:
+                        too_few_item_time += 1
+                    if too_few_item_time >= 2:
+                        break
+
+                    # self.utg.add_transition(ScrollEvent(view=scroller, direction="DOWN"), top_state, scrolled_state)
+                    top_state = scrolled_state
+
+                # filter out the views that have been added to the whole_state by scrolling other scrollers
+                for all_view_id in range(len(all_views_without_id)):
+                    view = all_views_without_id[all_view_id]
+                    if view not in whole_state_views:
+                        whole_state_views.append(view)
+                        whole_state_actions.append(all_actions[all_view_id])
+
+                all_views_for_mark = []
+                _ = self._scroll_to_top(scroller, all_views_for_mark, top_state)
+        else:
+            whole_state_views, whole_state_actions, whole_state_strs = [], [], []
+
+            # state_strs = [current_state.state_str]
+            state_prompt, current_candidate_actions, current_views, _ = current_state.get_described_actions()
+            for all_view_id in range(len(current_views)):
+                view = current_views[all_view_id]
+                if view not in whole_state_views:
+                    whole_state_views.append(view)
+
+        return whole_state_views
+
+
+class ConfiotHost(Confiot):
+
+    # [TODO]: update
+    def test_vistor_mode(self, config_description_list):
+        for desc in config_description_list:
+            state = desc["state"]
+            configs = desc["configs"]
+            for config in configs:
+                text = config["description"].encode().decode()
+                if ("vistor mode" in text.lower() or "访客模式" in text.lower()):
+                    return state
+        return None
+
+    def generate_tasks(self):
+        config_description_list = []
+        with open(settings.Confiot_output + "/config_description_list.json", "r") as f:
+            config_description_list = json.loads(f.read())
+
+        target_state = self.test_vistor_mode(config_description_list)
+        if (target_state is not None):
+            self.device_to_state('', target_state)
+
+    def start_autodroid(self):
+        command = f"autodroid -d 192.168.31.218:5555 -a /root/documents/droidbot-new/mihome/mihome.apk -o /root/documents/droidbot-new/mihome/mihome-smartscale/result/autodroid -task 'Configure the device Mihome body fat scale for enabling the guest mode' -keep_env -keep_app"
+
+        # 使用subprocess.Popen执行命令，并捕获标准输出
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+
+        # 逐行读取标准输出
+        while True:
+            line = process.stdout.readline()
+            if not line:
+                break  # 如果没有更多的输出，则退出循环
+            print(line.strip())
+            process.stdout.flush()  # 刷新输出缓冲区
+
+        # 等待子进程结束
+        process.wait()
+
+
+class ConfiotGuest(Confiot):
+    # walk through all states and store the UI hierachy in UI/
+    def device_state_walker(self, host_analyzing_config: str):
+        STEP1 = '''
+###################################
+### Traverse static UI states #####
+###################################
+'''
+        print(STEP1)
+        for node in self.utg_graph.nodes:
+            finished = self.device_to_state(host_analyzing_config, node.name)
+            if (finished):
+                self.device_get_UIElement(host_analyzing_config, node.name)
+
+    # get all configurations list and test them one by one
+    def device_guest_config_walker(self, host_analyzing_config: str):
+        # test all configs in conf_list and genreate UI hierachy and screenshots
+        STEP2 = '''
+###################################
+### Testing guest configs #########
+###################################
+'''
+        print(STEP2)
+        for conf in self.conf_list:
+            enabled = self.device_guest_config_test(host_analyzing_config, conf)
+            if (not enabled):
+                infl = {}
+                infl["id"] = len(self.conf_list)
+                infl["influenceType"] = settings.CONFIG_DISABLED
+                infl["content"] = {}
+                infl["content"]["view"] = conf["view_images"]
+                infl["content"]["state"] = conf["from_state"]
+                self.result.append(infl)
+
+    # analyze the state transition screenshots of the configs in conf_list with gpt
+    def device_guest_config_GPTAnalyze(self, host_analyzing_config: str):
+        STEP3 = '''
+###################################
+### Testing guest configs with GPT#
+###################################
+'''
+        print(STEP3)
+        for conf in self.conf_list:
+            out_dir = settings.UI_output + f"/{host_analyzing_config}/guest:" + conf["view_images"]
+            if (os.path.exists(out_dir + "/before.png") and os.path.exists(out_dir + "/after.png")):
+                time.sleep(1)
+                # resize the images
+                before_png_resize = png_resize(out_dir + "/before.png", settings.resol_x, settings.resol_y)
+                after_png_resize = png_resize(out_dir + "/after.png", settings.resol_x, settings.resol_y)
+                if (before_png_resize != -1 and after_png_resize != -1 and os.path.exists(before_png_resize) and
+                        os.path.exists(after_png_resize)):
+                    ret = UIComparator.identify_alert(before_png_resize, after_png_resize, out_dir)
+                    if (ret == "fail"):
+                        infl = {}
+                        infl["id"] = len(self.conf_list)
+                        infl["influenceType"] = settings.CONFIG_DISABLED
+                        infl["content"] = {}
+                        infl["content"]["view"] = conf["view_images"]
+                        infl["content"]["state"] = conf["from_state"]
+                        self.result.append(infl)
