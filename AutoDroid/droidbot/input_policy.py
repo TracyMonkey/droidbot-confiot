@@ -1032,7 +1032,7 @@ class TaskPolicy(UtgBasedInputPolicy):
         else:
             history_with_thought = action_history
 
-        introduction = '''You are a smartphone assistant to help users complete tasks by interacting with mobile apps.Given a task, the previous UI actions, and the content of current UI state, your job is to decide whether the task is already finished by the previous actions, and if not, decide which UI element in current UI state should be interacted.'''
+        introduction = '''You are a smartphone assistant to help users complete tasks by interacting with mobile apps.Given a task, the previous UI actions, and the content of current UI state, your job is to decide whether the task is already finished by the previous actions, and if not, decide which UI element in current UI state should be interacted. Please note that the same action should not be performed consecutively more than three times on the same page.'''
         task_prompt = 'Task: ' + self.task
         history_prompt = 'Previous UI actions: \n' + '\n'.join(history_with_thought)
         full_state_prompt = 'Current UI state: \n' + state_prompt

@@ -28,7 +28,7 @@ class DeviceState(object):
         self.tag = tag
         self.screenshot_path = screenshot_path
         self.views = self.__parse_views(views)
-        
+
         self.bk_views = copy.deepcopy(self.views)
         self.view_graph = self._build_view_graph()
         # self._adjust_view_clickability()
@@ -43,13 +43,13 @@ class DeviceState(object):
         self.width = device.get_width(refresh=True)
         self.height = device.get_height(refresh=False)
         self._save_important_view_ids()
-        
+
 
     @property
     def activity_short_name(self):
         return self.foreground_activity.split('.')[-1]
-    
-        
+
+
     def _save_important_view_ids(self):
         _, _, _, important_view_ids = self.get_described_actions(remove_time_and_ip=False)
         ids_path = self.device.output_dir +'/states_view_ids'
@@ -361,7 +361,7 @@ class DeviceState(object):
         if return_itm == None:
             return_itm = ''
         return return_itm
-    
+
     @staticmethod
     def get_view_center(view_dict):
         """
@@ -496,7 +496,7 @@ class DeviceState(object):
 
         self.possible_events = possible_events
         return [] + possible_events
-    
+
     def _get_self_ancestors_property(self, view, key, default=None):
         all_views = [view] + [self.views[i] for i in self.get_all_ancestors(view)]
         for v in all_views:
@@ -504,7 +504,7 @@ class DeviceState(object):
             if value:
                 return value
         return default
-    
+
 
     def _merge_text(self, view_text, content_description):
         text = ''
@@ -518,7 +518,7 @@ class DeviceState(object):
             content_description = f'{content_description[:20]}...' if len(content_description) > 20 else content_description
             text += content_description
         return text
-        
+
     def _remove_view_ids(self, views):
         import re
         removed_views = []
@@ -540,7 +540,7 @@ class DeviceState(object):
                ['android:id/navigationBarBackground',
                 'android:id/statusBarBackground']:
                 enabled_view_ids.append(view_dict['temp_id'])
-        
+
         text_frame = "<p id=@ class='&'>#</p>"
         btn_frame = "<button id=@ class='&' checked=$>#</button>"
         input_frame = "<input id=@ class='&' >#</input>"
@@ -564,7 +564,7 @@ class DeviceState(object):
             view_class = self.__safe_dict_get(view, 'class').split('.')[-1]
             if not content_description and not view_text and not scrollable:  # actionable?
                 continue
-            
+
             # text = self._merge_text(view_text, content_description)
             # view_status = ''
             if editable:
@@ -577,7 +577,7 @@ class DeviceState(object):
                 view_descs.append(view_desc)
                 available_actions.append(SetTextEvent(view=view, text='HelloWorld'))
             elif (clickable or checkable or long_clickable):
-                
+
                 view_desc = btn_frame.replace('@', str(len(view_descs))).replace('#', view_text).replace('$', str(checked or selected))
                 # import pdb;pdb.set_trace()
                 if content_description:
@@ -608,14 +608,14 @@ class DeviceState(object):
         state_desc = prefix #'Given a screen, an instruction, predict the id of the UI element to perform the insturction. The screen has the following UI elements: \n'
         # state_desc = 'You can perform actions on a contacts app, the current state of which has the following UI views and corresponding actions, with action id in parentheses:\n'
         state_desc += '\n '.join(view_descs)
-        
+
         views_without_id = self._remove_view_ids(view_descs)
 
         return state_desc, available_actions, views_without_id
 
     # def _build_view_tree(self):
     #     # import networkx as nx
-        
+
     #     view_tree = Tree()#nx.DiGraph()
     #     node_desc = 0
     #     view_tree.create_node(node_desc, 0)
@@ -627,10 +627,10 @@ class DeviceState(object):
     #     view_tree.show()
     #     for node in view_tree.expand_tree(mode=Tree.WIDTH, sorting=False):
     #         if self.views[node]['clickable']:
-    #             print(node, self.views[node]['text'], self.views[node]['content_description'])            
+    #             print(node, self.views[node]['text'], self.views[node]['content_description'])
     #     # import pdb;pdb.set_trace()
     #     return view_tree
-    def _build_view_graph(self):        
+    def _build_view_graph(self):
         view_graph = nx.DiGraph()
         for view_id in range(1, len(self.views)):
             view = self.views[view_id]
@@ -643,7 +643,7 @@ class DeviceState(object):
         import matplotlib.pyplot as plt
         nx.draw(graph, with_labels=True, font_weight='bold')
         plt.show()
-    
+
     def _adjust_view_clickability(self):
         '''make the view unclickable if it has clickable successors'''
         for view_id in range(1, len(self.views)):
@@ -662,7 +662,7 @@ class DeviceState(object):
                     if successor != view_id and self.__safe_dict_get(self.views[successor], 'checkable', False):
                         self.views[view_id]['checkable'] = False
                         break
-    
+
     def _get_ancestor_id(self, view, key, default=None):
         if self.__safe_dict_get(view, key=key, default=False):
             return view['temp_id']
@@ -672,7 +672,7 @@ class DeviceState(object):
             if value:
                 return v['temp_id']
         return default
-    
+
     def _extract_all_children(self, id):
         successors = []
         successors_of_view = nx.dfs_successors(self.view_graph, source=id, depth_limit=100)
@@ -698,7 +698,7 @@ class DeviceState(object):
                ['android:id/navigationBarBackground',
                 'android:id/statusBarBackground']:
                 # if the successor is not visible, then ignore it!
-                continue          
+                continue
 
             text = self.__safe_dict_get(self.views[childid], 'text', default='')
             if len(text) > 50:
@@ -727,29 +727,29 @@ class DeviceState(object):
         merged_text = '<br>'.join(texts) if len(texts) > 0 else ''
         merged_desc = '<br>'.join(content_descriptions) if len(content_descriptions) > 0 else ''
         return merged_text, merged_desc, important_view_ids
-    
+
     def _get_children_checked(self, children_ids):
         for childid in children_ids:
             if self.__safe_dict_get(self.views[childid], 'checked', default=False):
                 return True
         return False
-    
+
     def _get_children_checkable(self, children_ids):
         for childid in children_ids:
             if self.__safe_dict_get(self.views[childid], 'checkable', default=False):
                 return True
         return False
-    
+
     def _has_clickable_children(self, id):
         children = self._extract_all_children(id)
-        # children = 
+        # children =
         for child_view_id in children:
             clickable = self.__safe_dict_get(self.views[child_view_id], 'clickable', default=False)
-            checkable = self.__safe_dict_get(self.views[child_view_id], 'checkable', default=False) 
+            checkable = self.__safe_dict_get(self.views[child_view_id], 'checkable', default=False)
             if clickable or checkable:
                 return True
         return False
-    
+
     # def _self_not_clickable_with_clickable_relatives(self, id):
     #     if self.__safe_dict_get(self.views[id], key='clickable', default=False) or self.__safe_dict_get(self.views[id], key='checkable', default=False):
     #         return False
@@ -773,7 +773,7 @@ class DeviceState(object):
     #                     self.views[view_id]['checkable'] = False
     #                     break
 
-    
+
     def get_described_actions(self, prefix='', remove_time_and_ip=False,
                                 merge_buttons =True, add_edit_box = True, add_check_box = True, add_pure_text = True):
         """
@@ -787,7 +787,7 @@ class DeviceState(object):
                ['android:id/navigationBarBackground',
                 'android:id/statusBarBackground']:
                 enabled_view_ids.append(view_dict['temp_id'])
-        
+
         text_frame = "<p id=@ text='&'>#</p>"
         btn_frame = "<button id=@ text='&'>#</button>"
         checkbox_frame = "<checkbox id=@ checked=$ text='&'>#</checkbox>"
@@ -817,8 +817,25 @@ class DeviceState(object):
             content_description = self.__safe_dict_get(view, 'content_description', default='')
             view_text = self.__safe_dict_get(view, 'text', default='')
             view_class = self.__safe_dict_get(view, 'class').split('.')[-1]
-            if not content_description and not view_text and not scrollable:  # actionable?
-                continue
+
+            # if not content_description and not view_text and not scrollable:  # actionable?
+            #     continue
+
+            # syncxxx
+            if not editable:
+                if not content_description and not view_text and not scrollable:  # actionable?
+                    continue
+            else:
+                if not content_description and not view_text:  # actionable?
+                    content_description = 'Please Input'
+
+            # syncxxx: 删除text为空的
+            if not editable:
+                tt = view_text.strip()
+                tt = tt.replace(' ', '')
+                tt = tt.replace('\t', '')
+                if tt == '':
+                    continue
 
             # text = self._merge_text(view_text, content_description)
             # view_status = ''
@@ -897,7 +914,7 @@ class DeviceState(object):
                 # view_descs.append(scroll_down_frame.replace('@', str(len(view_descs))))#.replace('&', view_class).replace('#', text))
                 # available_actions.append(ScrollEvent(view=view, direction='DOWN'))
             else:
-                
+
                 if remove_time_and_ip:
                     view_text = self._remove_ip_and_date(view_text)
                     content_description = self._remove_ip_and_date(content_description)
@@ -919,11 +936,11 @@ class DeviceState(object):
         state_desc = prefix #'Given a screen, an instruction, predict the id of the UI element to perform the insturction. The screen has the following UI elements: \n'
         # state_desc = 'You can perform actions on a contacts app, the current state of which has the following UI views and corresponding actions, with action id in parentheses:\n'
         state_desc += '\n'.join(view_descs)
-        
+
         views_without_id = self._remove_view_ids(view_descs)
         # print(views_without_id)
         return state_desc, available_actions, views_without_id, important_view_ids
-    
+
     def get_view_desc(self, view):
         content_description = self.__safe_dict_get(view, 'content_description', default='')
         view_text = self.__safe_dict_get(view, 'text', default='')
@@ -965,7 +982,7 @@ class DeviceState(object):
 
             if view_id not in clickable_children_ids:
                 clickable_children_ids.append(view_id)
-                
+
             view_text, content_description, important_view_ids = self._merge_textv2(clickable_children_ids, False, [])
             checked = self._get_children_checked(clickable_children_ids)
                 # print(view_id, clickable_ancestor_id, clickable_children_ids, view_text, content_description)
@@ -996,7 +1013,7 @@ class DeviceState(object):
             else:
                 view_desc = view_desc.replace(" class='&'", "")
         return view_desc
-    
+
     def get_action_desc(self, action):
         desc = action.event_type
         if isinstance(action, KeyEvent):
@@ -1023,7 +1040,7 @@ class DeviceState(object):
                 desc = '- TapOn: ' + view_desc
             # desc = f'- {action_name} {self.get_view_desc(action.view)}'
         return desc
-    
+
     def get_action_descv2(self, action, view_desc):
         desc = action.event_type
         if isinstance(action, KeyEvent):
@@ -1038,7 +1055,7 @@ class DeviceState(object):
             else:
                 desc = '- TapOn: ' + view_desc
         return desc
-    
+
     def view_scrollable(self, view_dict):
         visible = False
         # exclude navigation bar if exists
@@ -1068,7 +1085,7 @@ class DeviceState(object):
             return True
         else:
             return False
-    
+
     def _remove_ip_and_date(self, string, remove_candidates=None):
         if not string:
             return string
@@ -1085,8 +1102,8 @@ class DeviceState(object):
         # if '::' in string:  # ip address
         #     string = ''
         return string
-    
-        
+
+
     def get_number_free_screen(self, prefix=''):
         """
         Get a text description of current state
@@ -1100,7 +1117,7 @@ class DeviceState(object):
                ['android:id/navigationBarBackground',
                 'android:id/statusBarBackground']:
                 enabled_view_ids.append(view_dict['temp_id'])
-        
+
         text_frame = "<p id=@ class='&'>#</p>"
         btn_frame = "<button id=@ class='&' checked=$>#</button>"
         input_frame = "<input id=@ class='&' >#</input>"
@@ -1125,6 +1142,7 @@ class DeviceState(object):
             if not content_description and not view_text and not scrollable:  # actionable?
                 continue
 
+
             content_description = self._remove_date_and_date(content_description)
             view_text = self._remove_date_and_date(view_text)
             # text = self._merge_text(view_text, content_description)
@@ -1139,7 +1157,7 @@ class DeviceState(object):
                 view_descs.append(view_desc)
                 available_actions.append(SetTextEvent(view=view, text='HelloWorld'))
             elif (clickable or checkable or long_clickable):
-                
+
                 view_desc = btn_frame.replace('@', str(len(view_descs))).replace('#', view_text).replace('$', str(checked or selected))
                 # import pdb;pdb.set_trace()
                 if content_description:
@@ -1170,11 +1188,11 @@ class DeviceState(object):
         state_desc = prefix #'Given a screen, an instruction, predict the id of the UI element to perform the insturction. The screen has the following UI elements: \n'
         # state_desc = 'You can perform actions on a contacts app, the current state of which has the following UI views and corresponding actions, with action id in parentheses:\n'
         state_desc += '\n '.join(view_descs)
-        
+
         views_without_id = self._remove_view_ids(view_descs)
 
         return state_desc#, available_actions, views_without_id
-    
+
     def get_scrollable_views(self):
         scrollable_views = []
         enabled_view_ids = []

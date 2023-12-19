@@ -156,7 +156,7 @@ def extract_gpt_answer(answer):
 
 
 def make_prompt(task, ui_desc, history):
-    introduction_prompt = "You are a smartphone assistant to help users complete tasks by interacting with mobile apps.\nGiven a task, the previous UI actions, and the content of current UI state, your job is to decide whether the task is already finished by the previous actions, and if not, decide which UI element in current UI state should be interacted."
+    introduction_prompt = "You are a smartphone assistant to help users complete tasks by interacting with mobile apps.\nGiven a task, the previous UI actions, and the content of current UI state, your job is to decide whether the task is already finished by the previous actions, and if not, decide which UI element in current UI state should be interacted. Please note that the same action should not be performed consecutively more than three times on the same page."
     task_prompt = "Task: "
     history_prompt = "Previous UI actions: "
     interface_prompt = "Current UI state: "
