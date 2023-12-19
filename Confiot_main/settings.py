@@ -1,4 +1,4 @@
-device_serial = "14131FDF600073"
+device_serial = "192.168.31.218:5555"
 
 # app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
 # droid_output = "/root/documents/droidbot-new/a2dp/"

@@ -160,4 +160,4 @@ def test_host():
 if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_resize_png()
-    test_host()
+    test_goto_state()

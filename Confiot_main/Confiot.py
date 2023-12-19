@@ -7,14 +7,15 @@ import os
 import sys
 import copy
 import subprocess
+import time
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR + "/../")
 
-from droidbot.input_event import *
-from droidbot.device import Device
-from droidbot.app import App
-from droidbot.device_state import DeviceState
+from droidbot_origin.droidbot.input_event import *
+from droidbot_origin.droidbot.device import Device
+from droidbot_origin.droidbot.app import App
+from droidbot_origin.droidbot.device_state import DeviceState
 from Confiot_main.util import DirectedGraph, Node, Edge, draw_rect_with_bounds, png_resize
 import Confiot_main.settings as settings
 from Confiot_main.UIComparator import UIComparator
@@ -105,7 +106,8 @@ class Confiot:
         self.device.pull_file(remote_image_path, local_image_path)
         self.device.adb.shell("rm %s" % remote_image_path)
 
-    def device_stop_app(self):
+    def device_stop_app(self, autodroid=False):
+        from AutoDroid.droidbot.input_event import IntentEvent as autoIntentEvent
         try:
             stack = self.device.get_current_activity_stack()
             current_package = None
@@ -117,10 +119,10 @@ class Confiot:
                     current_package = acts_package
                     self.device.adb.shell("am force-stop " + current_package)
             stop_app_intent = self.app.get_stop_intent()
-            go_back_event = IntentEvent(stop_app_intent)
+            go_back_event = autoIntentEvent(stop_app_intent) if autodroid else IntentEvent(stop_app_intent)
             go_back_event.send(self.device)
-        except:
-            print("[ERR]: Cannot stop app")
+        except Exception as e:
+            print("[ERR]: Cannot stop app caused by: ", e)
 
     def device_to_state(self, host_analyzing_config: str, target_state: str):
         event_str_path = []
@@ -134,6 +136,41 @@ class Confiot:
         self.device_stop_app()
         self.device.start_app(self.app)
         time.sleep(3)
+        for estr in event_str_path:
+            if (estr in self.events):
+                with open(self.events[estr], "r") as f:
+                    event_dict = json.load(f)["event"]
+                    event = InputEvent.from_dict(event_dict)
+                    print("[DBG]: Action: " + estr)
+                    event.send(self.device)
+                    time.sleep(2)
+            else:
+                print("[ERR]: Wrong event path: ", event_str_path)
+                return False
+
+        print("[DBG]: Reached state: " + target_state)
+        return True
+
+
+    def TOSTATE(self, target_state, app, device):
+        self.app = app
+        self.device = device
+
+        self.parse_event()
+        # print(confiot.events)
+        self.parse_utg()
+
+        event_str_path = []
+        path = self.utg_graph.find_shortest_path(self.utg_graph.start_node, target_state)
+        if (path):
+            current_node = path[0]
+            for node in path[1:]:
+                event_str_path.append(self.utg_graph.edges_dict[current_node.name][node.name][0])
+                current_node = node
+
+        # self.device_stop_app(autodroid=True)
+        # self.device.start_app(self.app)
+        # time.sleep(3)
         for estr in event_str_path:
             if (estr in self.events):
                 with open(self.events[estr], "r") as f:
@@ -274,7 +311,7 @@ class Confiot:
             conf_activity_dict["from_state"] = e["from"]
             conf_activity_dict["to_state"] = e["to"]
 
-            # Add bounds and Inputevent for views identification
+            # Add bounds and InputEvent for views identification
             conf_activity_dict["event"] = None
             conf_activity_dict["bounds"] = None
             if (conf_activity_dict["event_str"] in self.events):
@@ -440,6 +477,7 @@ class ConfiotHost(Confiot):
                 if ("vistor mode" in text.lower() or "访客模式" in text.lower()):
                     return state
         return None
+
 
     def generate_tasks(self):
         config_description_list = []

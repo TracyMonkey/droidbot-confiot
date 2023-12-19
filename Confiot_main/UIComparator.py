@@ -1,7 +1,6 @@
 import difflib
 import xml.dom.minidom
 import xmldiff.main as xml_diff
-import Confiot_main.settings as settings
 import xml.etree.ElementTree as ET
 import os
 import base64
@@ -9,7 +8,9 @@ import requests
 
 from xmldiff import formatting
 from bs4 import BeautifulSoup
-from util import deprecated
+
+import Confiot_main.settings as settings
+from Confiot_main.util import deprecated
 
 
 class UIComparator:
