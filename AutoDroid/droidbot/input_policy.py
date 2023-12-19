@@ -73,7 +73,6 @@ class InputPolicy(object):
         self.app = app
         self.action_count = 0
         self.master = None
-        self.Confiot_toState()
 
     def Confiot_device_stop_app(self):
         try:
@@ -93,7 +92,7 @@ class InputPolicy(object):
             print("[ERR]: Cannot stop app caused by: ", e)
 
     # syncxxx: 开始task前进入task相应的前置状态
-    def Confiot_toState(self):
+    def Confiot_toState(self,input_manager):
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         sys.path.append(BASE_DIR + "/../../")
         from Confiot_main.Confiot import Confiot
@@ -102,8 +101,12 @@ class InputPolicy(object):
         self.device.start_app(self.app)
         time.sleep(3)
         cf = Confiot()
-        cf.TOSTATE("fcaf9e45619dd1e264000c5515def7885d83689583caa6205074af2324abd209",self.app, self.device)
-        input()
+        events = cf.TOSTATE("fcaf9e45619dd1e264000c5515def7885d83689583caa6205074af2324abd209",self.app, self.device)
+        if(events):
+            for e in events:
+                input_manager.add_event(e)
+                self.action_count += 1
+        # input()
 
 
     def start(self, input_manager):
@@ -112,6 +115,8 @@ class InputPolicy(object):
         :param input_manager: instance of InputManager
         """
         self.action_count = 0
+
+        self.Confiot_toState(input_manager)
         while input_manager.enabled and self.action_count < input_manager.event_count:
             try:
                 # # make sure the first event is go to HOME screen

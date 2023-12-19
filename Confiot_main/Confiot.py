@@ -171,20 +171,23 @@ class Confiot:
         # self.device_stop_app(autodroid=True)
         # self.device.start_app(self.app)
         # time.sleep(3)
+
+        ret_events = []
         for estr in event_str_path:
             if (estr in self.events):
                 with open(self.events[estr], "r") as f:
                     event_dict = json.load(f)["event"]
                     event = InputEvent.from_dict(event_dict)
                     print("[DBG]: Action: " + estr)
-                    event.send(self.device)
-                    time.sleep(2)
+                    ret_events.append(event)
+                    # event.send(self.device)
+                    # time.sleep(2)
             else:
                 print("[ERR]: Wrong event path: ", event_str_path)
                 return False
 
         print("[DBG]: Reached state: " + target_state)
-        return True
+        return ret_events
 
     # return True if the config is enabled
     # return False if the config is possiblly be disabled
