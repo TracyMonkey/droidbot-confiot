@@ -215,6 +215,8 @@ class DeviceState(object):
             from PIL import Image
             # Load the original image:
             view_bound = view_dict['bounds']
+
+            print(view_bound)
             original_img = Image.open(self.screenshot_path)
             # view bound should be in original image bound
             view_img = original_img.crop(
@@ -431,15 +433,22 @@ class DeviceState(object):
             #     continue
 
             # exclude navigation bar if exists
-            if self.__safe_dict_get(view_dict, 'enabled') and \
-                    self.__safe_dict_get(view_dict, 'visible') and \
-                    self.__safe_dict_get(view_dict, 'resource_id') not in \
-               ['android:id/navigationBarBackground',
-                'android:id/statusBarBackground']:
+            # if self.__safe_dict_get(view_dict, 'enabled') and \
+            #         self.__safe_dict_get(view_dict, 'visible') and \
+            #         self.__safe_dict_get(view_dict, 'resource_id') not in \
+            #    ['android:id/navigationBarBackground',
+            #     'android:id/statusBarBackground']:
+            #     enabled_view_ids.append(view_dict['temp_id'])
+
+            if self.__safe_dict_get(view_dict, 'enabled'): #and self.__safe_dict_get(view_dict, 'visible'):
                 enabled_view_ids.append(view_dict['temp_id'])
+
+            print(view_dict)
         # enabled_view_ids.reverse()
+        print(enabled_view_ids)
 
         for view_id in enabled_view_ids:
+            # print(view_id)
             if self.__safe_dict_get(self.views[view_id], 'clickable'):
                 possible_events.append(TouchEvent(view=self.views[view_id]))
                 touch_exclude_view_ids.add(view_id)

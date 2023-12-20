@@ -63,6 +63,7 @@ class InputPolicy(object):
         event_str = ""
         view_str = ""
         last_activity = ""
+        blacklist_activity = ""
         while input_manager.enabled and self.action_count < input_manager.event_count:
             try:
                 # # make sure the first event is go to HOME screen
@@ -88,16 +89,27 @@ class InputPolicy(object):
                         last_activity = current_activity_name
 
                     print("Generate event activity_name: %s" % current_activity_name)
+                    print("Generate event: %s" % event_str)
 
                     if len(event_str.split(", view=")) > 1 :
                         view_str = event_str.split(", view=")[1].split("(")[0]
                     # Action: TouchEvent(state=320da521d69b2cde549f5149a249746a,    view=3d8622531c57d469916832908fbcc912(EditDevice}/ImageButton-))
 
-                    if (current_activity_name == target_activity_name) and (view_str ==     "3d8622531c57d469916832908fbcc912"):
-                        print("skip\n")
+                    if (current_activity_name == target_activity_name) and (view_str == "9be2d695ae9ca521b8c46f1a42473255"):
+                        print("skip")
                         continue
-                    elif (current_activity_name == "unknown") and (event_str.split("(") [0] == "KeyEvent"):
-                        print("skip\n")
+                    elif (current_activity_name == target_activity_name) and (event_str.split("(") [0] == "KeyEvent"):
+                        print("skip")
+                        continue
+                    elif current_activity_name == "AlarmVideoActivityNew":
+                        current_activity_name = target_activity_name
+                        input_manager.add_event(KeyEvent(name="BACK"))
+                        print("skip")
+                        continue
+                    elif current_activity_name == "MessageCenterV2Activity":
+                        current_activity_name = last_activity
+                        input_manager.add_event(KeyEvent(name="BACK"))
+                        print("skip")
                         continue
                     else:
                         input_manager.add_event(event)

@@ -869,9 +869,11 @@ class Device(object):
         self.adb.shell("reboot -p")
 
     def get_views(self):
+        # print("get views!!!!!!!!!!!!!!!!!!!")
         if self.cv_mode and self.adapters[self.minicap]:
             # Get views using cv module
             self.logger.info("CV mode")
+            # print("CV mode!!!!!!!!!!!!!!!!!!!!!!")
             views = self.minicap.get_views()
             if views:
                 return views
