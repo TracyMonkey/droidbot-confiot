@@ -2,10 +2,6 @@ from openai import OpenAI
 from base64 import b64encode
 import os
 import sys
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(BASE_DIR + "/../../")
-
 import Confiot_main.settings as settings
 import shutil
 
@@ -56,4 +52,4 @@ def is_back_button(image_path):
         return False
 
 
-is_back_button("/root/documents/droidbot-new/droidbot-confiot/Confiot_main/gpt_test/BackButtons/back.png")
+# is_back_button("/root/documents/droidbot-new/droidbot-confiot/Confiot/gpt_test/BackButtons/back.png")
