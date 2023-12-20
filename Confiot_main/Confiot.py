@@ -82,22 +82,44 @@ class Confiot:
         with open(settings.Confiot_output + "/config_description_list.json", "w") as f:
             f.write(json_str)
 
+
+
     def device_get_UIElement(self, host_analyzing_config: str, current_state_str: str, store_path="", store_file=""):
+        output_path = ''
+        output_file = ''
         if (store_file == ''):
             output_path = settings.UI_output + f"/{host_analyzing_config}/"
-            if (self.device and self.app):
-                self.device.adb.shell("uiautomator dump /sdcard/ui_dump.xml")
-                if (not os.path.exists(output_path)):
-                    os.makedirs(output_path)
-                self.device.adb.run_cmd(["pull", "/sdcard/ui_dump.xml", output_path + f"{current_state_str}.xml"])
+            output_file = output_path + f"{current_state_str}.xml"
         else:
             output_path = store_path
-            if (self.device and self.app):
-                self.device.adb.shell("uiautomator dump /sdcard/ui_dump.xml")
-                if (not os.path.exists(output_path)):
-                    os.makedirs(output_path)
+            output_file = store_path + "/" + store_file
+        if (not os.path.exists(output_path)):
+            os.makedirs(output_path)
 
-                self.device.adb.run_cmd(["pull", "/sdcard/ui_dump.xml", store_path + "/" + store_file])
+        try:
+            ui_dump = output_file.replace('/','_')
+            if (self.device and self.app):
+                r1 = self.device.adb.shell(f"uiautomator dump /sdcard/{ui_dump}")
+                r2 = self.device.adb.run_cmd(["pull", f"/sdcard/{ui_dump}", output_file])
+        # failed to dump the UI Hierarchy with adb
+        except:
+            print("[DBG]: Failed to dump the UI Hierarchy with adb and try to dump with Accessibility!")
+            try:
+                if(self.device.connected):
+                    import xml.etree.ElementTree as ET
+                    views = self.device.get_views()
+                    root = ET.Element('Hierarchy')
+
+                    for item in views:
+                        entry = ET.SubElement(root, 'Node')
+                        for key, value in item.items():
+                            ET.SubElement(entry, key).text = str(value)
+                    tree = ET.ElementTree(root)
+                    tree.write(output_file)
+                else:
+                    print("[ERR]: Device not connected!")
+            except Exception as e:
+                print("[ERR]: Failed to dump the UI Hierachy!", e)
 
     def device_screenshot(self, store_dir: str):
         local_image_path = store_dir

@@ -159,16 +159,25 @@ def test_host():
 
 def test_get_ui_hierarchy():
     import Confiot_main.settings as settings
+    import json
     settings.device_serial = "192.168.31.218:5555"
     confiot = ConfiotHost()
     confiot.device_connect()
-
     while(input() != '1'):
-        a= confiot.device.get_views()
-        print(a)
+        confiot.device_get_UIElement("","","/root/documents/droidbot-confiot/Confiot_main/","output.json")
+
+    # while(input() != '1'):
+    #     a= confiot.device.get_views()
+    #     json_data = json.dumps(a, indent=2)  # indent 参数用于设置缩进，使 JSON 文件更易读
+
+    #     # 将 JSON 数据写入文件
+    #     with open('output.json', 'w') as json_file:
+    #         json_file.write(json_data)
 
 
 if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_resize_png()
     test_get_ui_hierarchy()
+
+
