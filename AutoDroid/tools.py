@@ -58,7 +58,9 @@ def query_gpt(prompt):
     api_key = os.environ.get("OPENAI_API_KEY")
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
 
-    payload = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}]}
+    # syncxxx: use gpt-4 new model
+    payload = {"model": "gpt-4-1106-preview", "messages": [{"role": "user", "content": prompt}]}
+    # payload = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}]}
 
     response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
 

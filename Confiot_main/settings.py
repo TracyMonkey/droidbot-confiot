@@ -2,8 +2,8 @@ device_serial = "192.168.31.218:5555"
 
 # app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
 # droid_output = "/root/documents/droidbot-new/a2dp/"
-app_path = "/root/documents/droidbot-new/mihome/mihome.apk"
-droid_output = "/root/documents/droidbot-new/mihome/mihome-smartscale/result"
+app_path = "/root/documents/Output/mihome/mihome.apk"
+droid_output = "/root/documents/Output/mihome/mihome-smartscale/result"
 
 Confiot_output = f"{droid_output}/Confiot"
 UI_output = Confiot_output + "/UI/"

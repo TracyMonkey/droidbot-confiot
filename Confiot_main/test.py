@@ -157,7 +157,18 @@ def test_host():
     confiot.start_autodroid()
 
 
+def test_get_ui_hierarchy():
+    import Confiot_main.settings as settings
+    settings.device_serial = "192.168.31.218:5555"
+    confiot = ConfiotHost()
+    confiot.device_connect()
+
+    while(input() != '1'):
+        a= confiot.device.get_views()
+        print(a)
+
+
 if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_resize_png()
-    test_goto_state()
+    test_get_ui_hierarchy()
