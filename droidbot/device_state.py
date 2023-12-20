@@ -405,6 +405,20 @@ class DeviceState(object):
             depth += 1
         return -1
 
+    # [TODO-backbutton]: 这里是为了排除back按钮
+    def check_nearby_rectangles(self, rectangle, target_rectangle, threshold):
+        target_center_x = (target_rectangle[0][0] + target_rectangle[1][0]) / 2
+        target_center_y = (target_rectangle[0][1] + target_rectangle[1][1]) / 2
+
+        center_x = (rectangle[0][0] + rectangle[1][0]) / 2
+        center_y = (rectangle[0][1] + rectangle[1][1]) / 2
+
+        distance = math.sqrt((center_x - target_center_x)**2 + (center_y - target_center_y)**2)
+        if distance < threshold:
+            return True
+
+        return False
+
     def get_possible_input(self):
         """
         Get a list of possible input events for this state
@@ -415,8 +429,12 @@ class DeviceState(object):
         possible_events = []
         enabled_view_ids = []
         touch_exclude_view_ids = set()
+
+        # syncxxx: 过滤同一位置的按钮
+        import Confiot_main.settings as settings
+
         for view_dict in self.views:
-            # syncxxx: 将左上角的相关图片送到gpt中查询是否是back按钮
+            # [TODO-backbutton]: 将左上角的相关图片送到gpt中查询是否是back按钮
             # import Confiot.gpt_test.gpt as gpt
             # filep = self.save_view_img(view_dict)
             # print(filep)
@@ -430,13 +448,46 @@ class DeviceState(object):
             #     self.save_view_img(view_dict, output_dir=view_file_path)
             #     continue
 
+            bounds = self.__safe_dict_get(view_dict, "bounds")
+            parent = str(self.__safe_dict_get(view_dict, "parent"))
+            if (bounds):
+                bounds_str = str(bounds[0][0]) + str(bounds[0][1]) + str(bounds[1][0]) + str(bounds[1][1]) + parent
+
+            # [TODO-backbutton]: 这里是为了排除back按钮，但是这个back按钮的resource_id是动态的，所以这里需要改进
+            back_baseline = [[39, 157], [119, 237]]
+
+            # print(bounds)
+            if (bounds and self.check_nearby_rectangles(rectangle=bounds, target_rectangle=back_baseline, threshold=50)):
+                print("[DBG]: Found back button:", bounds)
+                continue
+
+            # [TODO-date]: 这里是为了排除日历
+            calendar_baseline = [[289, 118], [791, 276]]
+
+            # print(bounds)
+            if (bounds and (self.check_nearby_rectangles(rectangle=bounds, target_rectangle=calendar_baseline, threshold=50) or
+                            self.__safe_dict_get(view_dict, "view_str") == "778f566ca3b206bf05a5fe0cd954c441")):
+                print("[DBG]: Found calendar:", bounds)
+                continue
+
+            # # syncxxx: 过滤同一位置的按钮
+            # if (self.foreground_activity not in settings.bounds_map):
+            #     settings.bounds_map[self.foreground_activity] = {}
+            # if (bounds and bounds_str in settings.bounds_map[self.foreground_activity]):
+            #     if (settings.bounds_map[self.foreground_activity][bounds_str] > settings.bounds_limit):
+            #         continue
+            # elif (bounds):
+            #     settings.bounds_map[self.foreground_activity][bounds_str] = 0
+
             # exclude navigation bar if exists
             if self.__safe_dict_get(view_dict, 'enabled') and \
                     self.__safe_dict_get(view_dict, 'visible') and \
                     self.__safe_dict_get(view_dict, 'resource_id') not in \
                ['android:id/navigationBarBackground',
-                'android:id/statusBarBackground']:
+                'android:id/statusBarBackground',
+                ]:
                 enabled_view_ids.append(view_dict['temp_id'])
+
         # enabled_view_ids.reverse()
 
         for view_id in enabled_view_ids:
