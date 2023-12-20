@@ -523,34 +523,6 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
             if not self.utg.is_event_explored(event=input_event, state=current_state):
                 self.logger.info("Trying an unexplored event.")
                 self.__event_trace += EVENT_FLAG_EXPLORE
-                # syncxxx: 过滤同一位置的按钮
-                import Confiot_main.settings as settings
-                from droidbot.device_state import DeviceState
-                if (current_state.foreground_activity not in settings.bounds_map):
-                    settings.bounds_map[current_state.foreground_activity] = {}
-                if (hasattr(input_event, "view") and "bounds" in input_event.view and "parent" in input_event.view):
-                    bounds = input_event.view["bounds"]
-                    bounds_str = str(bounds[0][0]) + str(bounds[0][1]) + str(bounds[1][0]) + str(bounds[1][1]) + str(
-                        input_event.view["parent"])
-
-                    # if (bounds[0][0] == 961):
-                    #     print("[DBG]: ", bounds_str, input_event.view["temp_id"])
-                    if (bounds_str in settings.bounds_map[current_state.foreground_activity]):
-                        settings.bounds_map[current_state.foreground_activity][bounds_str] += 1
-                        if (settings.bounds_map[current_state.foreground_activity][bounds_str] > settings.bounds_limit):
-                            continue
-                    else:
-                        settings.bounds_map[current_state.foreground_activity][bounds_str] = 1
-
-                if (hasattr(input_event, "view") and "parent" in input_event.view):
-                    parent = input_event.view["parent"]
-                    if (parent in settings.parent_map):
-                        settings.parent_map[parent] += 1
-                        if (settings.parent_map[parent] > settings.parent_limit):
-                            continue
-                    else:
-                        settings.parent_map[parent] = 1
-
                 return input_event
 
         target_state = self.__get_nav_target(current_state)

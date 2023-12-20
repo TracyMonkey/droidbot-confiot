@@ -18,9 +18,9 @@ class UIComparator:
         self.Confiot_output = settings.Confiot_output
         self.first_option = first_option
         self.second_option = second_option
-        self.old_hierarchy_path = settings.UI_output + first_option
-        self.new_hierarchy_path = settings.UI_output + second_option
-        self.compare_output_path = settings.Static_comparation_output
+        self.old_hierarchy_path = self.Confiot_output + settings.UI_DIR + first_option
+        self.new_hierarchy_path = self.Confiot_output + settings.UI_DIR + second_option
+        self.compare_output_path = self.Confiot_output + settings.Comparation_DIR
         if (not os.path.exists(self.compare_output_path)):
             os.makedirs(self.compare_output_path)
 
@@ -148,7 +148,7 @@ class UIComparator:
         #     print(ET.tostring(node, encoding='unicode'))
 
     @staticmethod
-    def identify_alert(before_image_path, after_image_path, out_dir):
+    def identify_alert(before_image_path, after_image_path):
         # Function to encode the image
         def encode_image(image_path):
             with open(image_path, "rb") as image_file:
@@ -191,9 +191,6 @@ class UIComparator:
         }
 
         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-
-        with open(out_dir + "/gpt_resp.txt", 'w') as f:
-            f.write(response.text)
 
         # print(response.json()["choices"][0]["message"]["content"])
 

@@ -1,24 +1,10 @@
-import os, sys
-import math
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(BASE_DIR + "/../")
-from Confiot_main.Confiot import ConfiotGuest, ConfiotHost
+from Confiot_main.Confiot import ConfiotGuest
 import xml.etree.ElementTree as ET
 from Confiot_main.UIComparator import UIComparator
+import os
 
 # For test
-HOST_CONFIG_ANALYZED = "host:mihome_test_1"
-
-
-def test_resize_png():
-    from Confiot_main.util import png_resize
-    png_resize(
-        "/root/documents/droidbot-new/a2dp/Confiot/UI/host:A2DP_Start_at_Boot_off/guest:view_0fe88b3189e686f7242ae495c9b79a4a.png/after.png",
-        230, 512)
-
-
-#####################################
+HOST_CONFIG_ANALYZED = "host:A2DP_Start_at_Boot_off"
 
 
 def test_goto_state():
@@ -35,7 +21,6 @@ def test_goto_state():
             confiot.device_stop_app()
             break
         confiot.device_to_state(HOST_CONFIG_ANALYZED, target_str)
-        confiot.parse_all_views(confiot.device.get_current_state())
 
 
 def test_stop_app():
@@ -65,6 +50,19 @@ def test_config_extract():
     confiot.parse_utg()
 
     confiot.parse_conf_list()
+
+
+def test_guest_config_dynamic_analyze():
+    confiot = ConfiotGuest()
+    confiot.device_connect()
+
+    confiot.parse_event()
+    # print(confiot.events)
+    confiot.parse_utg()
+    confiot.parse_conf_list()
+
+    print(confiot.conf_list[44])
+    print(confiot.device_guest_config_test(HOST_CONFIG_ANALYZED, confiot.conf_list[44]))
 
 
 def test_xml_parse():
@@ -97,21 +95,6 @@ def test_identify_alert():
     print(UIComparator.identify_alert(before_image_path, before_image_path))
 
 
-def check_nearby_rectangles(rectangle, target_rectangle, threshold):
-    target_center_x = (target_rectangle[0][0] + target_rectangle[1][0]) / 2
-    target_center_y = (target_rectangle[0][1] + target_rectangle[1][1]) / 2
-
-    center_x = (rectangle[0][0] + rectangle[1][0]) / 2
-    center_y = (rectangle[0][1] + rectangle[1][1]) / 2
-
-    distance = math.sqrt((center_x - target_center_x)**2 + (center_y - target_center_y)**2)
-    print(distance)
-    if distance < threshold:
-        return True
-
-    return False
-
-
 def test_device_guest_config_walker():
     os.environ["https_proxy"] = "http://192.168.72.1:1083"
 
@@ -130,34 +113,5 @@ def test_device_guest_config_walker():
     print(confiot.result)
 
 
-def test_STEP0():
-    confiot = ConfiotGuest()
-    confiot.device_connect()
-
-    confiot.parse_event()
-    # print(confiot.events)
-    confiot.parse_utg()
-    confiot.parse_conf_list()
-
-    confiot.device_get_all_description_config()
-
-
-def test_host():
-    import Confiot_main.settings as settings
-    settings.device_serial = "192.168.31.218:5555"
-    confiot = ConfiotHost()
-    confiot.device_connect()
-
-    confiot.parse_event()
-    # print(confiot.events)
-    confiot.parse_utg()
-    confiot.parse_conf_list()
-
-    #confiot.generate_tasks()
-    confiot.start_autodroid()
-
-
 if __name__ == "__main__":
-    #test_device_guest_config_walker()
-    # test_resize_png()
-    test_host()
+    test_device_guest_config_walker()
