@@ -317,13 +317,63 @@ class Confiot:
         return self.utg_graph
 
     def parse_UITree(self):
+        self.uiTree = UITree()
+
+        # {state_str: [Node,]} 存储当前state下所有config Node
+        config_nodes = {}
+        # {event_str: Node} event与config一一对应
+        event_config = {}
+
         if (self.utg_graph is None):
             return
 
+        # for e in self.events:
+        #     if(hasattr(e, 'view')):
+        #         config_id = str(e['view']['temp_id'])
+        #         config_description = ''
+
+        #         if(hasattr(e['view'], "content_description") and e['view']["content_description"] and e['view']["content_description"] != ''):
+        #             config_description = config_description + ";e['view']['content_description']"
+        #         if(hasattr(e['view'], "text") and e['view']["text"] and e['view']["text"] != ''):
+        #             config_description = config_description + ";e['view']['text']"
+        #         self.uiTree.add_node(Node(config_id,description=config_description))
+
+        # 获取每个state中存在的config Node
         for src_state in self.utg_graph.edges_dict:
             for target_state in self.utg_graph.edges_dict[src_state]:
+                for event_str in self.utg_graph.edges_dict[src_state][target_state]:
+                    e = self.events[event_str]
+                    if('view' in e):
+                        config_id = str(e['view']['temp_id'])
+                        config_description = ''
 
-                self.uiTree.add_node(Node())
+                        if("content_description" in e['view'] and e['view']["content_description"] and e['view']["content_description"] != ''):
+                            config_description = config_description + f"{e['view']['content_description']}"
+                        if("text" in e['view'] and e['view']["text"] and e['view']["text"] != ''):
+                            config_description = config_description + f";{e['view']['text']}"
+
+                        if(src_state not in config_nodes):
+                            config_nodes[src_state] = []
+                        n = Node(config_id,description=config_description, state=src_state)
+                        event_config[event_str] = n
+                        config_nodes[src_state].append(n)
+                        self.uiTree.add_node(n)
+
+
+        for utg_edge in self.utg_graph.utg_edges:
+            if utg_edge['to'] not in config_nodes:
+                continue
+            for config in config_nodes[utg_edge['to']]:
+                if(utg_edge['events'] == []):
+                    continue
+                event_str = utg_edge['events'][0]['event_str']
+                if event_str not in event_config:
+                    continue
+                e = Edge(event_config[event_str], config, event_str)
+                self.uiTree.add_edge(e)
+
+        print(self.uiTree)
+        UITree.draw(self.uiTree,settings.Confiot_output)
 
 
 

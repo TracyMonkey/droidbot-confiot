@@ -188,9 +188,9 @@ def test_get_ui_hierarchy():
 
 def test_parse_uitree():
     import Confiot_main.settings as settings
-    settings.device_serial = "192.168.31.218:5555"
-    settings.app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
-    settings.droid_output = "/root/documents/droidbot-new/a2dp/"
+    # settings.device_serial = "192.168.31.218:5555"
+    # settings.app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
+    # settings.droid_output = "/root/documents/droidbot-new/a2dp/"
 
     confiot = Confiot()
     #confiot.device_connect()

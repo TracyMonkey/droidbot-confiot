@@ -57,8 +57,10 @@ def png_resize(file, resol_x, resol_y):
 
 class Node:
 
-    def __init__(self, name):
+    def __init__(self, name, description='',state=''):
         self.name = name
+        self.description = description
+        self.state = state
 
     def __str__(self):
         return self.name
@@ -137,13 +139,32 @@ class DirectedGraph:
         return neighbors
 
 
+    @staticmethod
+    def draw(graph,output_dir):
+        dot_content = "digraph G {\n"
+
+        added_edges = set()
+
+        for edge in graph.edges:
+            edge_str = f'  "{edge.start_node.name}" -> "{edge.end_node.name}"'
+            if edge_str not in added_edges:
+                dot_content += edge_str + "\n"
+                added_edges.add(edge_str)
+        for node in graph.nodes:
+            dot_content += f'  "{node.name}" [label="{node.name}\\n{node.description}"]\n'
+
+        dot_content += "}"
+
+        with open(f"{output_dir}/UITree.dot", "w") as dot_file:
+            dot_file.write(dot_content)
+
 
 class UITree(DirectedGraph):
     def __init__(self):
         # config-tempid
         self.nodes = []
 
-        # self.nodes_dict = {}
+        self.nodes_dict = {}
 
         # event (config set to a specific value)
         self.edges = []
