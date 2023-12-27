@@ -16,7 +16,7 @@ from droidbot_origin.droidbot.input_event import *
 from droidbot_origin.droidbot.device import Device
 from droidbot_origin.droidbot.app import App
 from droidbot_origin.droidbot.device_state import DeviceState
-from Confiot_main.util import DirectedGraph, Node, Edge, draw_rect_with_bounds, png_resize
+from Confiot_main.util import DirectedGraph, Node, Edge, draw_rect_with_bounds, png_resize, UITree
 import Confiot_main.settings as settings
 from Confiot_main.UIComparator import UIComparator
 
@@ -33,7 +33,10 @@ class Confiot:
         self.device: Device = None
         self.app: App = None
         self.utg_graph: DirectedGraph = None
+        self.uiTree:UITree = None
         # {"event_str": event_json_path}
+        self.events_fpath = {}
+        # {"event_str": event_dict}
         self.events = {}
         self.conf_list = []
         '''
@@ -166,13 +169,12 @@ class Confiot:
         self.device.start_app(self.app)
         time.sleep(3)
         for estr in event_str_path:
-            if (estr in self.events):
-                with open(self.events[estr], "r") as f:
-                    event_dict = json.load(f)["event"]
-                    event = InputEvent.from_dict(event_dict)
-                    print("[DBG]: Action: " + estr)
-                    event.send(self.device)
-                    time.sleep(2)
+            if (estr in self.events_fpath):
+                event_dict = self.events[estr]
+                event = InputEvent.from_dict(event_dict)
+                print("[DBG]: Action: " + estr)
+                event.send(self.device)
+                time.sleep(2)
             else:
                 print("[ERR]: Wrong event path: ", event_str_path)
                 return False
@@ -203,14 +205,13 @@ class Confiot:
 
         ret_events = []
         for estr in event_str_path:
-            if (estr in self.events):
-                with open(self.events[estr], "r") as f:
-                    event_dict = json.load(f)["event"]
-                    event = InputEvent.from_dict(event_dict)
-                    print("[DBG]: Action: " + estr)
-                    ret_events.append(event)
-                    # event.send(self.device)
-                    # time.sleep(2)
+            if (estr in self.events_fpath):
+                event_dict = self.events[estr]
+                event = InputEvent.from_dict(event_dict)
+                print("[DBG]: Action: " + estr)
+                ret_events.append(event)
+                # event.send(self.device)
+                # time.sleep(2)
             else:
                 print("[ERR]: Wrong event path: ", event_str_path)
                 return False
@@ -264,9 +265,11 @@ class Confiot:
         for j in events_json:
             with open(events_path + j, "r") as f:
                 try:
-                    event_str = json.load(f)["event_str"]
+                    event = json.load(f)
+                    event_str = event["event_str"]
                     if (event_str != ''):
-                        self.events[event_str] = events_path + j
+                        self.events_fpath[event_str] = events_path + j
+                        self.events[event_str] = event["event"]
                 except Exception as e:
                     print(f"[ERR]: Failed to parse the event file `{j}`\n" + str(e))
 
@@ -313,6 +316,18 @@ class Confiot:
 
         return self.utg_graph
 
+    def parse_UITree(self):
+        if (self.utg_graph is None):
+            return
+
+        for src_state in self.utg_graph.edges_dict:
+            for target_state in self.utg_graph.edges_dict[src_state]:
+
+                self.uiTree.add_node(Node())
+
+
+
+
     def parse_conf_list(self):
         # input: droid_output/utg.js -> edges
         # output: conf_activity_dict (view_images, {event_id, event_str, {from_state, to_state}}, activity)
@@ -346,13 +361,12 @@ class Confiot:
             # Add bounds and InputEvent for views identification
             conf_activity_dict["event"] = None
             conf_activity_dict["bounds"] = None
-            if (conf_activity_dict["event_str"] in self.events):
-                with open(self.events[conf_activity_dict["event_str"]], "r") as f:
-                    event_dict = json.load(f)["event"]
-                    event = InputEvent.from_dict(event_dict)
-                    conf_activity_dict["event"] = event
-                    if ("view" in event_dict):
-                        conf_activity_dict["bounds"] = event_dict["view"]["bounds"]
+            if (conf_activity_dict["event_str"] in self.events_fpath):
+                event_dict = self.events[conf_activity_dict["event_str"]]
+                event = InputEvent.from_dict(event_dict)
+                conf_activity_dict["event"] = event
+                if ("view" in event_dict):
+                    conf_activity_dict["bounds"] = event_dict["view"]["bounds"]
 
             if (conf_activity_dict["bounds"] is None):
                 # print("[ERR]: Cannot find view bounds for event: ", conf_activity_dict["event_str"])

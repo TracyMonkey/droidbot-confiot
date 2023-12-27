@@ -3,7 +3,7 @@ import math
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR + "/../")
-from Confiot_main.Confiot import ConfiotGuest, ConfiotHost
+from Confiot_main.Confiot import ConfiotGuest, ConfiotHost, Confiot
 import xml.etree.ElementTree as ET
 from Confiot_main.UIComparator import UIComparator
 
@@ -186,10 +186,25 @@ def test_get_ui_hierarchy():
     #         json_file.write(json_data)
 
 
+def test_parse_uitree():
+    import Confiot_main.settings as settings
+    settings.device_serial = "192.168.31.218:5555"
+    settings.app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
+    settings.droid_output = "/root/documents/droidbot-new/a2dp/"
+
+    confiot = Confiot()
+    #confiot.device_connect()
+
+    confiot.parse_event()
+    # print(confiot.events)
+    confiot.parse_utg()
+    confiot.parse_conf_list()
+    confiot.parse_UITree()
+
 if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_resize_png()
     # test_STEP0()
-    test_STEP1()
+    test_parse_uitree()
 
 

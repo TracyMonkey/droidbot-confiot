@@ -137,6 +137,20 @@ class DirectedGraph:
         return neighbors
 
 
+
+class UITree(DirectedGraph):
+    def __init__(self):
+        # config-tempid
+        self.nodes = []
+
+        # self.nodes_dict = {}
+
+        # event (config set to a specific value)
+        self.edges = []
+        # {"src_node": {"dst_node": ["e1"]}}
+        self.edges_dict = {}
+        self.start_node = None
+
 if __name__ == "__main__":
     # 创建有向图
     graph = DirectedGraph()
