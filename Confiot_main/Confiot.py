@@ -21,6 +21,12 @@ import Confiot_main.settings as settings
 from Confiot_main.UIComparator import UIComparator
 
 
+DONE = '''
+###################
+###    Done   #####
+###################
+'''
+
 class Confiot:
 
     def __init__(self) -> None:
@@ -49,7 +55,7 @@ class Confiot:
         self.device.connect()
         self.device.install_app(self.app)
 
-    # walk through all states and store the UI hierachy in UI/
+    # parse the description configurations
     def device_get_all_description_config(self):
         STEP0 = '''
 ######################################################################
@@ -82,6 +88,7 @@ class Confiot:
         with open(settings.Confiot_output + "/config_description_list.json", "w") as f:
             f.write(json_str)
 
+        print(DONE)
 
 
     def device_get_UIElement(self, host_analyzing_config: str, current_state_str: str, store_path="", store_file=""):
@@ -545,6 +552,7 @@ class ConfiotGuest(Confiot):
             if (finished):
                 self.device_get_UIElement(host_analyzing_config, node.name)
 
+        print(DONE)
     # get all configurations list and test them one by one
     def device_guest_config_walker(self, host_analyzing_config: str):
         # test all configs in conf_list and genreate UI hierachy and screenshots

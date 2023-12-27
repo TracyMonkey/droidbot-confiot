@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from Confiot_main.UIComparator import UIComparator
 
 # For test
-HOST_CONFIG_ANALYZED = "host:mihome_test_1"
+HOST_CONFIG_ANALYZED = "host:mihome_After_SHARE"
 
 
 def test_resize_png():
@@ -141,6 +141,17 @@ def test_STEP0():
 
     confiot.device_get_all_description_config()
 
+def test_STEP1():
+    confiot = ConfiotGuest()
+    confiot.device_connect()
+
+    confiot.parse_event()
+    # print(confiot.events)
+    confiot.parse_utg()
+    confiot.parse_conf_list()
+
+    confiot.device_state_walker(HOST_CONFIG_ANALYZED)
+
 
 def test_host():
     import Confiot_main.settings as settings
@@ -178,6 +189,7 @@ def test_get_ui_hierarchy():
 if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_resize_png()
-    test_get_ui_hierarchy()
+    # test_STEP0()
+    test_STEP1()
 
 

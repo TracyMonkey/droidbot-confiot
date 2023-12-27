@@ -489,20 +489,11 @@ class DeviceState(object):
                 bounds_str = str(bounds[0][0]) + str(bounds[0][1]) + str(bounds[1][0]) + str(bounds[1][1]) + parent
 
             # [TODO-backbutton]: 这里是为了排除back按钮，但是这个back按钮的resource_id是动态的，所以这里需要改进
-            back_baseline = ([[30, 84], [93, 147]],)
+            back_baseline = settings.backs
 
             # print(bounds)
             if (bounds and self.check_nearby_rectangles(rectangle=bounds, target_rectangle=back_baseline, threshold=50)):
                 print("[DBG]: Found back button:", bounds)
-                continue
-
-            # [TODO-date]: 这里是为了排除日历
-            calendar_baseline = ([[243, 89], [804, 142]], [[813, 111], [837, 125]])
-
-            # print(bounds)
-            if (bounds and (self.check_nearby_rectangles(rectangle=bounds, target_rectangle=calendar_baseline, threshold=50) or
-                            self.__safe_dict_get(view_dict, "view_str") == "778f566ca3b206bf05a5fe0cd954c441")):
-                print("[DBG]: Found calendar:", bounds)
                 continue
 
             # # syncxxx: 过滤同一位置的按钮
