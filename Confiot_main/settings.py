@@ -26,7 +26,6 @@ parent_map = {}
 bounds_limit = 8
 parent_limit = 5
 
-
 ##### BackButton ######
 # 米家
 backs = ([[30, 84], [93, 147]], [[243, 89], [804, 142]], [[813, 111], [837, 125]])

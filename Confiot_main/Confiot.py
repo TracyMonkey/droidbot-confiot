@@ -20,12 +20,12 @@ from Confiot_main.util import DirectedGraph, Node, Edge, draw_rect_with_bounds, 
 import Confiot_main.settings as settings
 from Confiot_main.UIComparator import UIComparator
 
-
 DONE = '''
 ###################
 ###    Done   #####
 ###################
 '''
+
 
 class Confiot:
 
@@ -33,11 +33,13 @@ class Confiot:
         self.device: Device = None
         self.app: App = None
         self.utg_graph: DirectedGraph = None
-        self.uiTree:UITree = None
+        self.uiTree: UITree = None
         # {"event_str": event_json_path}
         self.events_fpath = {}
         # {"event_str": event_dict}
         self.events = {}
+        # {"state_str": [view,]}
+        self.state_contents = {}
         self.conf_list = []
         '''
         # the result that indicates the influence of the config `host_analyzing_config`
@@ -51,6 +53,14 @@ class Confiot:
 
         print("Analyzing the app: ", settings.app_path)
         print("Device serial: ", settings.device_serial)
+        print("Output path: ", settings.droid_output)
+
+        self.parse_event()
+        self.parse_utg()
+        self.parse_state_json()
+        self.parse_conf_list()
+
+
 
     def device_connect(self):
         self.device = Device(device_serial=settings.device_serial, ignore_ad=True, output_dir=settings.Confiot_output)
@@ -93,7 +103,6 @@ class Confiot:
 
         print(DONE)
 
-
     def device_get_UIElement(self, host_analyzing_config: str, current_state_str: str, store_path="", store_file=""):
         output_path = ''
         output_file = ''
@@ -107,7 +116,7 @@ class Confiot:
             os.makedirs(output_path)
 
         try:
-            ui_dump = output_file.replace('/','_')
+            ui_dump = output_file.replace('/', '_')
             if (self.device and self.app):
                 r1 = self.device.adb.shell(f"uiautomator dump /sdcard/{ui_dump}")
                 r2 = self.device.adb.run_cmd(["pull", f"/sdcard/{ui_dump}", output_file])
@@ -115,7 +124,7 @@ class Confiot:
         except:
             print("[DBG]: Failed to dump the UI Hierarchy with adb and try to dump with Accessibility!")
             try:
-                if(self.device.connected):
+                if (self.device.connected):
                     import xml.etree.ElementTree as ET
                     views = self.device.get_views()
                     root = ET.Element('Hierarchy')
@@ -181,7 +190,6 @@ class Confiot:
 
         print("[DBG]: Reached state: " + target_state)
         return True
-
 
     def TOSTATE(self, target_state, app, device):
         self.app = app
@@ -316,6 +324,46 @@ class Confiot:
 
         return self.utg_graph
 
+    # parse all UI hierachy in state
+    def parse_state_json(self):
+        states_path = f"{settings.droid_output}/states/"
+        states_json = os.listdir(states_path)
+        for j in states_json:
+            if ("screen" in j):
+                continue
+            with open(states_path + j, "r") as f:
+                try:
+                    s = json.load(f)
+                    state_str = s["state_str"]
+                    if (state_str != ''):
+                        self.state_contents[state_str] = s["views"]
+                except Exception as e:
+                    print(f"[ERR]: Failed to parse the state file `{j}`\n" + str(e))
+
+    # 获取与config_id配置相关的文本描述（child/brother node）
+    def get_related_descrition(self, state, config_id):
+        config_description = ""
+
+        if (state not in self.state_contents):
+            return -1
+        if (config_id >= len(self.state_contents[state])):
+            return -1
+        current_config = self.state_contents[state][config_id]
+        child_configs = current_config['children']
+
+        if ("content_description" in current_config and current_config["content_description"] and
+                current_config["content_description"] != ''):
+            config_description = config_description + f"{current_config['content_description']}"
+        if ("text" in current_config and current_config["text"] and current_config["text"] != ''):
+            config_description = config_description + f";{current_config['text']}"
+
+        for ch in child_configs:
+            desc = self.get_related_descrition(state, ch)
+            if (desc != -1 and desc != ''):
+                config_description = config_description + desc
+
+        return config_description
+
     def parse_UITree(self):
         self.uiTree = UITree()
 
@@ -343,28 +391,22 @@ class Confiot:
             for target_state in self.utg_graph.edges_dict[src_state]:
                 for event_str in self.utg_graph.edges_dict[src_state][target_state]:
                     e = self.events[event_str]
-                    if('view' in e):
+                    if ('view' in e):
                         config_id = str(e['view']['temp_id'])
-                        config_description = ''
+                        config_description = self.get_related_descrition(src_state, int(config_id))
 
-                        if("content_description" in e['view'] and e['view']["content_description"] and e['view']["content_description"] != ''):
-                            config_description = config_description + f"{e['view']['content_description']}"
-                        if("text" in e['view'] and e['view']["text"] and e['view']["text"] != ''):
-                            config_description = config_description + f";{e['view']['text']}"
-
-                        if(src_state not in config_nodes):
+                        if (src_state not in config_nodes):
                             config_nodes[src_state] = []
-                        n = Node(config_id,description=config_description, state=src_state)
+                        n = Node(config_id, description=config_description, state=src_state)
                         event_config[event_str] = n
                         config_nodes[src_state].append(n)
                         self.uiTree.add_node(n)
-
 
         for utg_edge in self.utg_graph.utg_edges:
             if utg_edge['to'] not in config_nodes:
                 continue
             for config in config_nodes[utg_edge['to']]:
-                if(utg_edge['events'] == []):
+                if (utg_edge['events'] == []):
                     continue
                 event_str = utg_edge['events'][0]['event_str']
                 if event_str not in event_config:
@@ -373,10 +415,7 @@ class Confiot:
                 self.uiTree.add_edge(e)
 
         print(self.uiTree)
-        UITree.draw(self.uiTree,settings.Confiot_output)
-
-
-
+        UITree.draw(self.uiTree, settings.Confiot_output)
 
     def parse_conf_list(self):
         # input: droid_output/utg.js -> edges
@@ -574,7 +613,6 @@ class ConfiotHost(Confiot):
                     return state
         return None
 
-
     def generate_tasks(self):
         config_description_list = []
         with open(settings.Confiot_output + "/config_description_list.json", "r") as f:
@@ -617,6 +655,7 @@ class ConfiotGuest(Confiot):
                 self.device_get_UIElement(host_analyzing_config, node.name)
 
         print(DONE)
+
     # get all configurations list and test them one by one
     def device_guest_config_walker(self, host_analyzing_config: str):
         # test all configs in conf_list and genreate UI hierachy and screenshots

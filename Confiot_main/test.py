@@ -25,9 +25,7 @@ def test_goto_state():
     confiot = ConfiotGuest()
     confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
 
     while (1):
         target_str = input("state: ")
@@ -49,9 +47,7 @@ def test_state_walker():
     confiot = ConfiotGuest()
     confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
 
     confiot.device_state_walker("A2DP_Start_at_Boot_off")
 
@@ -60,11 +56,7 @@ def test_config_extract():
     confiot = ConfiotGuest()
     #confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
-
-    confiot.parse_conf_list()
 
 
 def test_xml_parse():
@@ -118,10 +110,7 @@ def test_device_guest_config_walker():
     confiot = ConfiotGuest()
     confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
-    confiot.parse_conf_list()
 
     confiot.device_state_walker(HOST_CONFIG_ANALYZED)
     confiot.device_guest_config_walker(HOST_CONFIG_ANALYZED)
@@ -134,21 +123,16 @@ def test_STEP0():
     confiot = ConfiotGuest()
     confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
-    confiot.parse_conf_list()
 
     confiot.device_get_all_description_config()
+
 
 def test_STEP1():
     confiot = ConfiotGuest()
     confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
-    confiot.parse_conf_list()
 
     confiot.device_state_walker(HOST_CONFIG_ANALYZED)
 
@@ -159,10 +143,7 @@ def test_host():
     confiot = ConfiotHost()
     confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
-    confiot.parse_conf_list()
 
     #confiot.generate_tasks()
     confiot.start_autodroid()
@@ -174,8 +155,8 @@ def test_get_ui_hierarchy():
     settings.device_serial = "192.168.31.218:5555"
     confiot = ConfiotHost()
     confiot.device_connect()
-    while(input() != '1'):
-        confiot.device_get_UIElement("","","/root/documents/droidbot-confiot/Confiot_main/","output.json")
+    while (input() != '1'):
+        confiot.device_get_UIElement("", "", "/root/documents/droidbot-confiot/Confiot_main/", "output.json")
 
     # while(input() != '1'):
     #     a= confiot.device.get_views()
@@ -195,16 +176,13 @@ def test_parse_uitree():
     confiot = Confiot()
     #confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
-    confiot.parse_conf_list()
+
     confiot.parse_UITree()
+
 
 if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_resize_png()
     # test_STEP0()
     test_parse_uitree()
-
-
