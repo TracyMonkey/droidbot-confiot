@@ -16,7 +16,7 @@ from droidbot_origin.droidbot.input_event import *
 from droidbot_origin.droidbot.device import Device
 from droidbot_origin.droidbot.app import App
 from droidbot_origin.droidbot.device_state import DeviceState
-from Confiot_main.util import DirectedGraph, Node, Edge, draw_rect_with_bounds, png_resize, UITree
+from Confiot_main.util import deprecated, DirectedGraph, Node, Edge, draw_rect_with_bounds, png_resize, UITree, query_config_resource_mapping, parse_config_resource_mapping
 import Confiot_main.settings as settings
 from Confiot_main.UIComparator import UIComparator
 
@@ -34,6 +34,8 @@ class Confiot:
         self.app: App = None
         self.utg_graph: DirectedGraph = None
         self.uiTree: UITree = None
+        self.ConfigResourceMapper = []
+
         # {"event_str": event_json_path}
         self.events_fpath = {}
         # {"event_str": event_dict}
@@ -60,8 +62,6 @@ class Confiot:
         self.parse_state_json()
         self.parse_conf_list()
 
-
-
     def device_connect(self):
         self.device = Device(device_serial=settings.device_serial, ignore_ad=True, output_dir=settings.Confiot_output)
         self.app = App(app_path=settings.app_path, output_dir=settings.Confiot_output)
@@ -69,6 +69,7 @@ class Confiot:
         self.device.install_app(self.app)
 
     # parse the description configurations
+    @deprecated
     def device_get_all_description_config(self):
         STEP0 = '''
 ######################################################################
@@ -102,6 +103,41 @@ class Confiot:
             f.write(json_str)
 
         print(DONE)
+
+    def device_map_config_resource(self):
+        STEP0 = '''
+######################################################################
+#############    Configuration-Resources Mapping   ###################
+######################################################################
+'''
+        print(STEP0)
+
+        paths = self.parse_UITree()
+        paths_str = ""
+
+        for p in paths:
+            p_str = "\",\"".join(p)
+            paths_str += f"[\"{p_str}\"]\n"
+
+        prompt = ''
+        with open(BASE_DIR + "/prompt/ConfigResourceMapping.txt") as f:
+            prompt = f.read()
+
+        prompt = prompt.replace("{{PATHLIST}}", paths_str)
+        print(prompt)
+        print(
+            "----------------------------------------------------------------------------------------------------------------------------------------------"
+        )
+        # os.environ["https_proxy"] = "http://192.168.72.1:1083"
+        res = query_config_resource_mapping(prompt)
+
+        if (res):
+            with open(BASE_DIR + "/prompt/response.txt", "w") as f:
+                f.write(res)
+            self.ConfigResourceMapper = parse_config_resource_mapping(res)
+
+        print(DONE)
+        return self.ConfigResourceMapper
 
     def device_get_UIElement(self, host_analyzing_config: str, current_state_str: str, store_path="", store_file=""):
         output_path = ''
@@ -364,6 +400,7 @@ class Confiot:
 
         return config_description
 
+    # 返回所有config paths
     def parse_UITree(self):
         self.uiTree = UITree()
 
@@ -391,6 +428,11 @@ class Confiot:
             for target_state in self.utg_graph.edges_dict[src_state]:
                 for event_str in self.utg_graph.edges_dict[src_state][target_state]:
                     e = self.events[event_str]
+
+                    # 不包括返回的边
+                    if ("name=BACK" in event_str):
+                        continue
+
                     if ('view' in e):
                         config_id = str(e['view']['temp_id'])
                         config_description = self.get_related_descrition(src_state, int(config_id))
@@ -402,6 +444,9 @@ class Confiot:
                         config_nodes[src_state].append(n)
                         self.uiTree.add_node(n)
 
+        indegree = {}
+        for n in self.uiTree.nodes:
+            indegree[n] = 0
         for utg_edge in self.utg_graph.utg_edges:
             if utg_edge['to'] not in config_nodes:
                 continue
@@ -412,10 +457,26 @@ class Confiot:
                 if event_str not in event_config:
                     continue
                 e = Edge(event_config[event_str], config, event_str)
+                indegree[config] += 1
                 self.uiTree.add_edge(e)
 
-        print(self.uiTree)
+        start_node = list(indegree.keys())[0]
+        for n in indegree:
+            if (indegree[n] < indegree[start_node]):
+                start_node = n
+
+        self.uiTree.start_node = start_node.name
+
+        print("[DBG]: UITree start node:", start_node)
         UITree.draw(self.uiTree, settings.Confiot_output)
+
+        config_paths = []
+        for n in self.uiTree.nodes:
+            p = self.uiTree.find_shortest_path(self.uiTree.start_node, n.name)
+            p = [i.description for i in p]
+            config_paths.append(p)
+
+        return config_paths
 
     def parse_conf_list(self):
         # input: droid_output/utg.js -> edges

@@ -1,0 +1,25 @@
+You are a text-based app configuration semantic classifier, and I will provide a configuration path list and a resource list.
+
+The configuration path list includes configuration texts that I have extracted from an app, and one configuration example is “settings - edit house owners - house owners can edit house settings and set up new devices for this house. - guest 2”. Usually, I will give you a configuration path that completes only one task. For example, this is a path to complete the task “edit house owners”. You can infer what task the configuration path is doing, and then map the resources related to the task.
+
+The resource list includes several IoT security and privacy-related resources. Your aim is to iterate through each configuration and map the configuration to one or more resources in the resource list.
+
+Please respond in the following pattern:
+Configuration path: settings - edit house owners - guest 2
+	Task: edit house owners
+	Related resources: resource1, resource2
+
+The configuration path list is:
+{{PATHLIST}}
+
+The resource list is: device state, personal data, device usage data, device info, user info, user list, user permission, automation list, and third-party services.
+
+Device state means the current state of the device, such as the door lock is open, the humidifier is on, and the camera is open.
+Personal data includes device data related to a specific user, such as the videos recorded by the camera, and the weights of the users. It is usually related to the privacy of a specific user.
+Device usage data usually contains usage logs that record or monitor the activities of the users.
+Device info usually includes device logs, device timezone, language settings, device software version, etc.
+User info includes the user name, phone number, email, or some personal information. It belongs to a specific user, but the data may not related to the device.
+User list will give a list of current users or a group of users such as owners.
+User permission means whether a user can access the device resources.
+Automation list related to automation or scheduled tasks. Users can create multiple actions to control devices in steps and set a specific time to do the actions.
+Third-party services mean some apps can link to other services.

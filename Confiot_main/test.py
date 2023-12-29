@@ -167,8 +167,9 @@ def test_get_ui_hierarchy():
     #         json_file.write(json_data)
 
 
-def test_parse_uitree():
+def test_mapping_uitree():
     import Confiot_main.settings as settings
+    from Confiot_main.util import query_config_resource_mapping, parse_config_resource_mapping
     # settings.device_serial = "192.168.31.218:5555"
     # settings.app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
     # settings.droid_output = "/root/documents/droidbot-new/a2dp/"
@@ -178,11 +179,32 @@ def test_parse_uitree():
 
     # print(confiot.events)
 
-    confiot.parse_UITree()
+    paths = confiot.parse_UITree()
+
+    paths_str = ""
+
+    for p in paths:
+        p_str = "\",\"".join(p)
+        paths_str += f"[\"{p_str}\"]\n"
+
+    prompt = ''
+    with open(BASE_DIR + "/prompt/ConfigResourceMapping.txt") as f:
+        prompt = f.read()
+
+    prompt = prompt.replace("{{PATHLIST}}", paths_str)
+    print(prompt)
+
+    # os.environ["https_proxy"] = "http://192.168.72.1:1083"
+    res = query_config_resource_mapping(prompt)
+
+    if (res):
+        with open(BASE_DIR + "/prompt/response.txt", "w") as f:
+            f.write(res)
+        parse_config_resource_mapping(res)
 
 
 if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_resize_png()
     # test_STEP0()
-    test_parse_uitree()
+    test_mapping_uitree()

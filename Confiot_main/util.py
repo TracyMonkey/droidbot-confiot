@@ -1,6 +1,10 @@
 from collections import deque
 import warnings
 from PIL import Image, ImageDraw
+from openai import OpenAI
+from base64 import b64encode
+import os
+import re
 
 
 def deprecated(func):
@@ -57,7 +61,7 @@ def png_resize(file, resol_x, resol_y):
 
 class Node:
 
-    def __init__(self, name, description='',state=''):
+    def __init__(self, name, description='', state=''):
         self.name = name
         self.description = description
         self.state = state
@@ -138,9 +142,8 @@ class DirectedGraph:
                 neighbors.append(edge.end_node)
         return neighbors
 
-
     @staticmethod
-    def draw(graph,output_dir):
+    def draw(graph, output_dir):
         dot_content = "digraph G {\n"
 
         added_edges = set()
@@ -160,6 +163,7 @@ class DirectedGraph:
 
 
 class UITree(DirectedGraph):
+
     def __init__(self):
         # config-tempid
         self.nodes = []
@@ -171,6 +175,57 @@ class UITree(DirectedGraph):
         # {"src_node": {"dst_node": ["e1"]}}
         self.edges_dict = {}
         self.start_node = None
+
+
+# 解析GPT返回的mapping
+def parse_config_resource_mapping(text):
+    ConfigResourceMapper = []
+
+    pattern = re.compile(r'Configuration path: (\[.*?\])\s+Task: (.*?)\s+Related resources: (.*?)', re.DOTALL)
+    matches = pattern.findall(text)
+
+    for match in matches:
+        try:
+            config_path = eval(match[0])  # 使用 eval 将字符串转为列表
+            task = match[1]
+            related_resources = match[2]
+
+            ConfigResourceMapper.append({"Path": config_path, "Task": task, "Resources": related_resources})
+            print("Configuration Path:", config_path)
+            print("Task:", task)
+            print("Related Resources:", related_resources)
+        except Exception as e:
+            print(e)
+
+    print(
+        "----------------------------------------------------------------------------------------------------------------------------------------------"
+    )
+    return ConfigResourceMapper
+
+
+def query_config_resource_mapping(prompt):
+    import requests
+    api_key = os.environ.get("OPENAI_API_KEY")
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
+
+    # syncxxx: use gpt-4 new model
+    payload = {"model": "gpt-4-1106-preview", "messages": [{"role": "user", "content": prompt}]}
+    # payload = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}]}
+
+    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+
+    # URL = os.environ['OPENAI_API_KEY']  # NOTE: replace with your own GPT API
+    # body = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}], "stream": True}
+    # headers = {'Content-Type': 'application/json', 'path': 'v1/chat/completions'}
+    # r = requests.post(url=URL, json=body, headers=headers)
+    #return response.content.decode()
+
+    try:
+        return response.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        print(e)
+        return False
+
 
 if __name__ == "__main__":
     # 创建有向图
