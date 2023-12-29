@@ -1,19 +1,32 @@
-from Confiot_main.Confiot import ConfiotGuest
+import os, sys
+import math
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR + "/../")
+from Confiot_main.Confiot import ConfiotGuest, ConfiotHost, Confiot
 import xml.etree.ElementTree as ET
 from Confiot_main.UIComparator import UIComparator
 import os
 
 # For test
-HOST_CONFIG_ANALYZED = "host:A2DP_Start_at_Boot_off"
+HOST_CONFIG_ANALYZED = "host:mihome_After_SHARE"
+
+
+def test_resize_png():
+    from Confiot_main.util import png_resize
+    png_resize(
+        "/root/documents/droidbot-new/a2dp/Confiot/UI/host:A2DP_Start_at_Boot_off/guest:view_0fe88b3189e686f7242ae495c9b79a4a.png/after.png",
+        230, 512)
+
+
+#####################################
 
 
 def test_goto_state():
     confiot = ConfiotGuest()
     confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
 
     while (1):
         target_str = input("state: ")
@@ -34,9 +47,7 @@ def test_state_walker():
     confiot = ConfiotGuest()
     confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
 
     confiot.device_state_walker("A2DP_Start_at_Boot_off")
 
@@ -45,11 +56,7 @@ def test_config_extract():
     confiot = ConfiotGuest()
     #confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
-
-    confiot.parse_conf_list()
 
 
 def test_guest_config_dynamic_analyze():
@@ -101,10 +108,7 @@ def test_device_guest_config_walker():
     confiot = ConfiotGuest()
     confiot.device_connect()
 
-    confiot.parse_event()
     # print(confiot.events)
-    confiot.parse_utg()
-    confiot.parse_conf_list()
 
     confiot.device_state_walker(HOST_CONFIG_ANALYZED)
     confiot.device_guest_config_walker(HOST_CONFIG_ANALYZED)
@@ -113,5 +117,92 @@ def test_device_guest_config_walker():
     print(confiot.result)
 
 
+def test_STEP0():
+    confiot = ConfiotGuest()
+    confiot.device_connect()
+
+    # print(confiot.events)
+
+    confiot.device_get_all_description_config()
+
+
+def test_STEP1():
+    confiot = ConfiotGuest()
+    confiot.device_connect()
+
+    # print(confiot.events)
+
+    confiot.device_state_walker(HOST_CONFIG_ANALYZED)
+
+
+def test_host():
+    import Confiot_main.settings as settings
+    settings.device_serial = "192.168.31.218:5555"
+    confiot = ConfiotHost()
+    confiot.device_connect()
+
+    # print(confiot.events)
+
+    #confiot.generate_tasks()
+    confiot.start_autodroid()
+
+
+def test_get_ui_hierarchy():
+    import Confiot_main.settings as settings
+    import json
+    settings.device_serial = "192.168.31.218:5555"
+    confiot = ConfiotHost()
+    confiot.device_connect()
+    while (input() != '1'):
+        confiot.device_get_UIElement("", "", "/root/documents/droidbot-confiot/Confiot_main/", "output.json")
+
+    # while(input() != '1'):
+    #     a= confiot.device.get_views()
+    #     json_data = json.dumps(a, indent=2)  # indent 参数用于设置缩进，使 JSON 文件更易读
+
+    #     # 将 JSON 数据写入文件
+    #     with open('output.json', 'w') as json_file:
+    #         json_file.write(json_data)
+
+
+def test_mapping_uitree():
+    import Confiot_main.settings as settings
+    from Confiot_main.util import query_config_resource_mapping, parse_config_resource_mapping
+    # settings.device_serial = "192.168.31.218:5555"
+    # settings.app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
+    # settings.droid_output = "/root/documents/droidbot-new/a2dp/"
+
+    confiot = Confiot()
+    #confiot.device_connect()
+
+    # print(confiot.events)
+
+    paths = confiot.parse_UITree()
+
+    paths_str = ""
+
+    for p in paths:
+        p_str = "\",\"".join(p)
+        paths_str += f"[\"{p_str}\"]\n"
+
+    prompt = ''
+    with open(BASE_DIR + "/prompt/ConfigResourceMapping.txt") as f:
+        prompt = f.read()
+
+    prompt = prompt.replace("{{PATHLIST}}", paths_str)
+    print(prompt)
+
+    # os.environ["https_proxy"] = "http://192.168.72.1:1083"
+    res = query_config_resource_mapping(prompt)
+
+    if (res):
+        with open(BASE_DIR + "/prompt/response.txt", "w") as f:
+            f.write(res)
+        parse_config_resource_mapping(res)
+
+
 if __name__ == "__main__":
-    test_device_guest_config_walker()
+    #test_device_guest_config_walker()
+    # test_resize_png()
+    # test_STEP0()
+    test_mapping_uitree()

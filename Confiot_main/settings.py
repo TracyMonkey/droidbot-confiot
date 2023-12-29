@@ -14,3 +14,15 @@ BackButtons_output = Confiot_output + "/BackButtons/"
 CONFIG_DISABLED = 0
 CONFIG_ENABLED = 1
 RESOURCE_REMOVED = 2
+
+##### Crawler Limitation ######
+# {"activity": {bounds_str : view_id}}
+bounds_map = {}
+parent_map = {}
+# 仅仅只允许同一个center point的view被点击{bounds_limit}次
+bounds_limit = 8
+parent_limit = 5
+
+##### BackButton ######
+# 米家
+backs = ([[30, 84], [93, 147]], [[243, 89], [804, 142]], [[813, 111], [837, 125]])
