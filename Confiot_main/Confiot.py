@@ -27,7 +27,7 @@ DONE = '''
 '''
 
 
-class ConfiotGuest:
+class Confiot:
 
     def __init__(self) -> None:
         self.device: Device = None
