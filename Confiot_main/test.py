@@ -172,13 +172,14 @@ def test_mapping_uitree():
     from Confiot_main.util import query_config_resource_mapping, parse_config_resource_mapping
     # settings.device_serial = "192.168.31.218:5555"
     # settings.app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
-    # settings.droid_output = "/root/documents/droidbot-new/a2dp/"
+    # settings.droid_output = "/root/documents/Output/mihome/August/August/"
 
     confiot = Confiot()
     #confiot.device_connect()
 
     # print(confiot.events)
 
+    os.environ["https_proxy"] = "http://192.168.72.1:1083"
     paths = confiot.device_map_config_resource()
 
 

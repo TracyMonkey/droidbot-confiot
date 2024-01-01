@@ -57,6 +57,9 @@ class Confiot:
         print("Device serial: ", settings.device_serial)
         print("Output path: ", settings.droid_output)
 
+        if (not os.path.exists(settings.Confiot_output)):
+            os.makedirs(settings.Confiot_output)
+
         self.parse_event()
         self.parse_utg()
         self.parse_state_json()
@@ -328,7 +331,7 @@ class Confiot:
         with open(settings.droid_output + "/utg.js", "r") as f:
             utg_content = f.read()
             if (utg_content != ''):
-                utg_content = utg_content.replace("var utg = ", '')
+                utg_content = utg_content.replace("var utg =", '')
                 utg_content = utg_content.replace(";", "")
                 utg_dict = json.loads(utg_content)
                 utg_nodes_dict = utg_dict["nodes"]
@@ -336,7 +339,7 @@ class Confiot:
 
                 for node in utg_nodes_dict:
                     activity = (node["package"] + node["activity"]).replace("}", "")
-                    if (activity == utg_dict["app_main_activity"]):
+                    if (utg_dict["app_main_activity"] in activity):
                         self.utg_graph.start_node = node["state_str"]
                         break
 
@@ -427,6 +430,8 @@ class Confiot:
         for src_state in self.utg_graph.edges_dict:
             for target_state in self.utg_graph.edges_dict[src_state]:
                 for event_str in self.utg_graph.edges_dict[src_state][target_state]:
+                    if (event_str not in self.events):
+                        continue
                     e = self.events[event_str]
 
                     # 不包括返回的边
@@ -473,6 +478,8 @@ class Confiot:
         config_paths = []
         for n in self.uiTree.nodes:
             p = self.uiTree.find_shortest_path(self.uiTree.start_node, n.name)
+            if (not p or p == []):
+                continue
             p = [i.description for i in p]
             config_paths.append(p)
 

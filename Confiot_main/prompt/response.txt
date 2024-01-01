@@ -1,47 +1,79 @@
-As a semantic classifier, I will iterate through each configuration path and provide the task and related resources. However, without more context or examples of the specific tasks, I will make general assumptions based on the provided text.
+Configuration path: ["SETTINGS"]
+    Task: Access settings menu
+    Related resources: user permission
 
-Configuration path: [";Body fat scale"]
-	Task: Access Body Fat Scale information
-	Related resources: device state, personal data
+Configuration path: ["SETTINGS",";House Name and Photo"]
+    Task: Edit house name and photo
+    Related resources: device info, personal data
 
-Configuration path: [";Body fat scale"," ",";Visitor Mode",";Gender",";Cancel"]
-	Task: Configure Visitor Mode settings for body fat scale
-	Related resources: user info, personal data, user permission
+Configuration path: ["SETTINGS",";Edit House Owners"]
+    Task: Edit house owners
+    Related resources: user list, user permission
 
-Configuration path: [";Body fat scale"," ",";Multi User Management"]
-	Task: Access or configure Multi User Management settings for body fat scale
-	Related resources: user list, user permission
+Configuration path: ["SETTINGS","LOCK",""]
+    Task: Access lock settings or view lock state
+    Related resources: device state, user permission
 
-Configuration path: [";Body fat scale"," ",";Multi User Management",";host;主账户"]
-	Task: Access or configure host account settings in Multi User Management for body fat scale
-	Related resources: user list, user permission, user info
+Configuration path: ["SETTINGS","LOCK"]
+    Task: Access lock settings or view lock state
+    Related resources: device state, user permission
 
-Configuration path: [";Body fat scale"," ",";Visitor Mode",";Age"]
-	Task: Input or configure age settings in Visitor Mode for body fat scale
-	Related resources: personal data, user info
+Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE","Navigate up"]
+    Task: Save lock settings for a specific door and navigate up
+    Related resources: device info, user permission, device state
 
-Configuration path: [";Body fat scale"," ",";Visitor Mode",";Height",";Cancel",";Nickname"]
-	Task: Configure height and nickname settings in Visitor Mode for body fat scale
-	Related resources: personal data, user info, user permission
+Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE","Navigate up"]
+    Task: Save lock settings for a specific door and navigate up
+    Related resources: device info, user permission, device state
 
-Configuration path: [";Body fat scale"," ",";Device"]
-	Task: Access device settings related to the body fat scale
-	Related resources: device info, device state
+Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE","Navigate up"]
+    Task: Save lock settings for a specific door and navigate up
+    Related resources: device info, user permission, device state
 
-Configuration path: [";Body fat scale"," ",";Visitor Mode",";Height",";Cancel",";Height;100"]
-	Task: Configure specific height in Visitor Mode and confirm or cancel for body fat scale
-	Related resources: personal data, user info, user permission
+Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR"]
+    Task: Edit lock settings for a specific door
+    Related resources: device info, user permission
 
-Configuration path: [";Body fat scale",";149 days ago;0points;162.9Jin;149 days ago;0points;162.9Jin;BMI 53.8;Overweight;Body Fat - -;- -;Muscle - -;- -;Water - -;- -;Protein - -;- -;Visceral Fat - -;- -;Fat Mass - -;- -;Bone Mass - -;- -;BMR - -;- -;Body Age - -;- -;Somatotype;- -;Body Fat Index 0;- -;Obesity Level 0;- -;Normal Weight;146.5-190.1Jin;Fat Free Mass;- -"," "]
-	Task: View historical personal health data from the body fat scale
-	Related resources: personal data, device usage data
+Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR"]
+    Task: Edit lock settings for a specific door
+    Related resources: device info, user permission
 
-Configuration path: [";Body fat scale"," ",";Visitor Mode",";Confirm",";确定"]
-	Task: Confirm settings in Visitor Mode for body fat scale
-	Related resources: personal data, user info, user permission
+Configuration path: ["SETTINGS",";Lock Settings",";Verified Access"]
+    Task: Edit lock settings for verified access
+    Related resources: user permission, user info
 
-Configuration path: [";Body fat scale"," ",";User Manual",";如何使用“好轻”测量身体数据"]
-	Task: Access User Manual for instructions on measuring body data with the body fat scale
-	Related resources: device info, user info
+Configuration path: ["SETTINGS","LOCK",""]
+    Task: Access lock settings or view lock state
+    Related resources: device state, user permission
 
-The specific tasks and related resources may vary depending on the actual functionality and options provided by the body fat scale application. These classifications are based on standard assumptions, and detailed functionality may allow for more accurate mappings.
+Configuration path: ["SETTINGS","LOCK",""]
+    Task: Access lock settings or view lock state
+    Related resources: device state, user permission
+
+Configuration path: ["SETTINGS"]
+    Task: Access settings menu
+    Related resources: user permission
+
+Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE","Navigate up"]
+    Task: Save lock settings for a specific door and navigate up
+    Related resources: device info, user permission, device state
+
+Configuration path: ["SETTINGS","LOCK","","Tap to cancel authentication"]
+    Task: Attempt to access lock settings and cancel authentication
+    Related resources: user permission
+
+Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";CANCEL"]
+    Task: Edit lock settings for a specific door and cancel changes
+    Related resources: device info, user permission
+
+Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE"]
+    Task: Save lock settings for a specific door
+    Related resources: device info, user permission, device state
+
+Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE","Navigate up"]
+    Task: Save lock settings for a specific door and navigate up
+    Related resources: device info, user permission, device state
+
+Configuration path: ["SETTINGS",";Lock Settings",";Verified Access",";USE PIN"]
+    Task: Set up or edit PIN for verified access in lock settings
+    Related resources: user permission, user info
