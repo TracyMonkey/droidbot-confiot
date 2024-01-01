@@ -180,6 +180,9 @@ def test_mapping_uitree():
     paths = confiot.device_map_config_resource()
 
 
+
+
+
 if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_resize_png()
