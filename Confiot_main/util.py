@@ -37,6 +37,28 @@ def draw_rect_with_bounds(file, bounds):
     image.save(file)
 
 
+def png_resize(file, resol_x, resol_y):
+    from PIL import Image
+
+    try:
+        # 打开图片
+        image = Image.open(file)
+
+        # 设置新的分辨率
+        new_resolution = (resol_x, resol_y)
+
+        # 改变分辨率
+        resized_image = image.resize(new_resolution)
+
+        # 保存图片
+        resized_image.save(f"{file}.resize.png")
+
+        return f"{file}.resize"
+    except Exception as e:
+        print("[ERR]: Failed to resize the image " + file, e)
+        return -1
+
+
 class Node:
 
     def __init__(self, name, description='', state=''):
