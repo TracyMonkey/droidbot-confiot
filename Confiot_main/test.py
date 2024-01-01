@@ -177,28 +177,7 @@ def test_mapping_uitree():
 
     # print(confiot.events)
 
-    paths = confiot.parse_UITree()
-
-    paths_str = ""
-
-    for p in paths:
-        p_str = "\",\"".join(p)
-        paths_str += f"[\"{p_str}\"]\n"
-
-    prompt = ''
-    with open(BASE_DIR + "/prompt/ConfigResourceMapping.txt") as f:
-        prompt = f.read()
-
-    prompt = prompt.replace("{{PATHLIST}}", paths_str)
-    print(prompt)
-
-    # os.environ["https_proxy"] = "http://192.168.72.1:1083"
-    res = query_config_resource_mapping(prompt)
-
-    if (res):
-        with open(BASE_DIR + "/prompt/response.txt", "w") as f:
-            f.write(res)
-        parse_config_resource_mapping(res)
+    paths = confiot.device_map_config_resource()
 
 
 if __name__ == "__main__":
