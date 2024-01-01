@@ -191,6 +191,7 @@ def parse_config_resource_mapping(text):
             related_resources = match[2]
 
             ConfigResourceMapper.append({"Path": config_path, "Task": task, "Resources": related_resources})
+            
             print("Configuration Path:", config_path)
             print("Task:", task)
             print("Related Resources:", related_resources)

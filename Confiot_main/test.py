@@ -203,6 +203,9 @@ def test_mapping_uitree():
         parse_config_resource_mapping(res)
 
 
+
+
+
 if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_resize_png()

@@ -13,6 +13,20 @@ import Confiot_main.settings as settings
 from Confiot_main.util import deprecated
 
 
+class PolicyGenerator:
+
+    def Policy_read(self, state_str):
+        hierachy_compare_result = self.compare_output_path + f"{state_str}.html"
+        UI_add = comparator.get_UI_add(hierachy_compare_result)
+        UI_delete = comparator.get_UI_delete(hierachy_compare_result)
+
+        for delete_node in UI_delete:
+            # 寻找node相关的资源：匹配state以及text description
+            pass
+
+        print(UI_add, UI_delete)
+
+
 class UIComparator:
 
     def __init__(self, first_option: str, second_option: str):
@@ -21,7 +35,10 @@ class UIComparator:
         self.second_option = second_option
         self.old_hierarchy_path = settings.UI_output + first_option
         self.new_hierarchy_path = settings.UI_output + second_option
-        self.compare_output_path = settings.Static_comparation_output
+        self.compare_output_path = settings.Static_comparation_output + f"/{first_option}_to_{second_option}/"
+        if (not os.path.exists(settings.Static_comparation_output)):
+            os.makedirs(settings.Static_comparation_output)
+
         if (not os.path.exists(self.compare_output_path)):
             os.makedirs(self.compare_output_path)
 
@@ -63,9 +80,8 @@ class UIComparator:
             ui_deletes.append(a)
         return ui_deletes
 
-    def compare_xml_files(self, old_file, new_file):
-        return self.compare_xml_files_with_difflib(
-            old_file, new_file, self.compare_output_path + self.first_option + "_to_" + self.second_option + ".html")
+    def compare_xml_files(self, old_file, new_file, output):
+        return self.compare_xml_files_with_difflib(old_file, new_file, output)
 
     @deprecated
     def compare_xml_files_with_xmldiff(self, old_file, new_file):
@@ -214,8 +230,12 @@ class UIComparator:
 if __name__ == "__main__":
     comparator = UIComparator("A2DP_Start_at_Boot_off", "A2DP_Start_at_Boot_on")
 
-    diff_html = comparator.compare_xml_files(comparator.old_hierarchy_path + "/819b47c5d517aba591f31b13343d5fde.xml",
-                                             comparator.new_hierarchy_path + "/819b47c5d517aba591f31b13343d5fde.xml")
+    state_str = "819b47c5d517aba591f31b13343d5fde"
+
+    UI_old = comparator.old_hierarchy_path + f"/{state_str}.xml"
+    UI_new = comparator.new_hierarchy_path + f"/{state_str}.xml"
+    compare_output_path = comparator.compare_output_path + f"/{state_str}.html"
+    diff_html = comparator.compare_xml_files(UI_old, UI_new, compare_output_path)
 
     UI_add = comparator.get_UI_add(diff_html)
     UI_delete = comparator.get_UI_delete(diff_html)
