@@ -1,0 +1,87 @@
+[
+    {
+        "Path": [
+            ";host",
+            ""
+        ],
+        "Task": "(Ambiguous - Insufficient information)",
+        "Resources": [
+            ""
+        ],
+        "state": "51b1b582e9a5351503e9f7a195ce1f9e4674ccdf38cb61c00d4b6eac163a9a2c"
+    },
+    {
+        "Path": [
+            ";host",
+            "SETTINGS"
+        ],
+        "Task": "Access Settings",
+        "Resources": [
+            "user permission",
+            "device info"
+        ],
+        "state": "51b1b582e9a5351503e9f7a195ce1f9e4674ccdf38cb61c00d4b6eac163a9a2c"
+    },
+    {
+        "Path": [
+            ";host",
+            "SETTINGS",
+            "LOCK"
+        ],
+        "Task": "Lock Settings",
+        "Resources": [
+            "device state",
+            "user permission"
+        ],
+        "state": "6e44c3c52ef2a834d2bf28ed798b8d3f74f7c0ac659a8b896354db340485d45f"
+    },
+    {
+        "Path": [
+            ";host",
+            "SETTINGS",
+            ";House Name and Photo"
+        ],
+        "Task": "Edit House Name and Photo",
+        "Resources": [
+            "personal data",
+            "user info"
+        ],
+        "state": "7194ce5114778cbdc34a4731fd2cac5c9c816b26f557c06af6c88ed9bfbc52ce"
+    },
+    {
+        "Path": [
+            ";host",
+            "SETTINGS",
+            ";Edit House Owners"
+        ],
+        "Task": "Edit House Owners",
+        "Resources": [
+            "user list",
+            "user permission"
+        ],
+        "state": "7194ce5114778cbdc34a4731fd2cac5c9c816b26f557c06af6c88ed9bfbc52ce"
+    },
+    {
+        "Path": [
+            ";host",
+            "SETTINGS",
+            ";House Name and Photo",
+            ""
+        ],
+        "Task": "(Ambiguous - Insufficient information)",
+        "Resources": [
+            ""
+        ],
+        "state": "49280d667c7d75757d0045cb159e536c1bb79ed2573e6de6730c636d9209ad14"
+    },
+    {
+        "Path": [
+            ";host"
+        ],
+        "Task": "(Ambiguous - Insufficient information)",
+        "Resources": [
+            ""
+        ],
+        "state": "a0aad1b7077ae9e65847d83d901fd75c5473267bb1cdb6ec5c6f79358000b24c"
+    }
+]

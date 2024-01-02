@@ -1,79 +1,34 @@
-Configuration path: ["SETTINGS"]
-    Task: Access settings menu
-    Related resources: user permission
+Configuration path: [";host",""]
+Task: (Ambiguous - Insufficient information)
+Related resources: 
+why this configuration is related to these resources: This configuration path is ambiguous and does not provide enough context to accurately determine the related resources.
 
-Configuration path: ["SETTINGS",";House Name and Photo"]
-    Task: Edit house name and photo
-    Related resources: device info, personal data
+Configuration path: [";host","SETTINGS"]
+Task: Access Settings
+Related resources: user permission, device info
+why this configuration is related to these resources: Accessing settings often means a user is about to view or change device configurations, permissions, or informational settings related to the device.
 
-Configuration path: ["SETTINGS",";Edit House Owners"]
-    Task: Edit house owners
-    Related resources: user list, user permission
+Configuration path: [";host","SETTINGS","LOCK"]
+Task: Lock Settings
+Related resources: device state, user permission
+why this configuration is related to these resources: Lock settings likely refer to access control or changing the state of a locking mechanism, impacting device state and potentially altering user permissions.
 
-Configuration path: ["SETTINGS","LOCK",""]
-    Task: Access lock settings or view lock state
-    Related resources: device state, user permission
+Configuration path: [";host","SETTINGS",";House Name and Photo"]
+Task: Edit House Name and Photo
+Related resources: personal data, user info
+why this configuration is related to these resources: Changing the house name and photo involves personalization of the user interface, which may tie into personal data such as pictures or identifying information.
 
-Configuration path: ["SETTINGS","LOCK"]
-    Task: Access lock settings or view lock state
-    Related resources: device state, user permission
+Configuration path: [";host","SETTINGS",";Edit House Owners"]
+Task: Edit House Owners
+Related resources: user list, user permission
+why this configuration is related to these resources: Editing house owners implies managing which users have owner permissions, thus affecting the user list and their permissions within the household.
 
-Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE","Navigate up"]
-    Task: Save lock settings for a specific door and navigate up
-    Related resources: device info, user permission, device state
+Configuration path: [";host","SETTINGS",";House Name and Photo",""]
+Task: (Ambiguous - Insufficient information)
+Related resources: 
+why this configuration is related to these resources: This configuration path is ambiguous due to the empty string and does not provide enough context to accurately determine the related resources.
 
-Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE","Navigate up"]
-    Task: Save lock settings for a specific door and navigate up
-    Related resources: device info, user permission, device state
-
-Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE","Navigate up"]
-    Task: Save lock settings for a specific door and navigate up
-    Related resources: device info, user permission, device state
-
-Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR"]
-    Task: Edit lock settings for a specific door
-    Related resources: device info, user permission
-
-Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR"]
-    Task: Edit lock settings for a specific door
-    Related resources: device info, user permission
-
-Configuration path: ["SETTINGS",";Lock Settings",";Verified Access"]
-    Task: Edit lock settings for verified access
-    Related resources: user permission, user info
-
-Configuration path: ["SETTINGS","LOCK",""]
-    Task: Access lock settings or view lock state
-    Related resources: device state, user permission
-
-Configuration path: ["SETTINGS","LOCK",""]
-    Task: Access lock settings or view lock state
-    Related resources: device state, user permission
-
-Configuration path: ["SETTINGS"]
-    Task: Access settings menu
-    Related resources: user permission
-
-Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE","Navigate up"]
-    Task: Save lock settings for a specific door and navigate up
-    Related resources: device info, user permission, device state
-
-Configuration path: ["SETTINGS","LOCK","","Tap to cancel authentication"]
-    Task: Attempt to access lock settings and cancel authentication
-    Related resources: user permission
-
-Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";CANCEL"]
-    Task: Edit lock settings for a specific door and cancel changes
-    Related resources: device info, user permission
-
-Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE"]
-    Task: Save lock settings for a specific door
-    Related resources: device info, user permission, device state
-
-Configuration path: ["SETTINGS",";Lock Settings",";Device Name;ROOMDOOR",";SAVE","Navigate up"]
-    Task: Save lock settings for a specific door and navigate up
-    Related resources: device info, user permission, device state
-
-Configuration path: ["SETTINGS",";Lock Settings",";Verified Access",";USE PIN"]
-    Task: Set up or edit PIN for verified access in lock settings
-    Related resources: user permission, user info
+Configuration path: [";host"]
+Task: (Ambiguous - Insufficient information)
+Related resources: 
+why this configuration is related to these resources: This configuration path lacks detail and, without additional context, does not indicate a specific task or related resources.
