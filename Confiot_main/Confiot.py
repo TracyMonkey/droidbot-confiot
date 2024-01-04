@@ -34,6 +34,7 @@ class Confiot:
         self.app: App = None
         self.utg_graph: DirectedGraph = None
         self.uiTree: UITree = None
+        # [{"Path": config_path, "Task": task, "Resources": related_resources, "state":state_str}]
         self.ConfigResourceMapper = []
 
         # {"event_str": event_json_path}
@@ -57,6 +58,9 @@ class Confiot:
         print("Device serial: ", settings.device_serial)
         print("Output path: ", settings.droid_output)
 
+        if (not os.path.exists(settings.Confiot_output)):
+            os.makedirs(settings.Confiot_output)
+
         self.parse_event()
         self.parse_utg()
         self.parse_state_json()
@@ -68,69 +72,41 @@ class Confiot:
         self.device.connect()
         self.device.install_app(self.app)
 
-    # parse the description configurations
-    @deprecated
-    def device_get_all_description_config(self):
-        STEP0 = '''
-######################################################################
-###    Traverse static UI states for configurations extraction   #####
-######################################################################
-'''
-        print(STEP1)
-        for node in self.utg_graph.nodes:
-            finished = self.device_to_state(host_analyzing_config, node.name)
-            if (finished):
-                self.device_get_UIElement(host_analyzing_config, node.name)
 
-    # get all configurations list and test them one by one
-    def device_guest_config_walker(self, host_analyzing_config: str):
-        # test all configs in conf_list and genreate UI hierachy and screenshots
-        STEP2 = '''
-###################################
-### Testing guest configs #########
-###################################
-'''
-        print(STEP2)
-        for conf in self.conf_list:
-            enabled = self.device_guest_config_test(host_analyzing_config, conf)
-            if (not enabled):
-                infl = {}
-                infl["id"] = len(self.conf_list)
-                infl["influenceType"] = settings.CONFIG_DISABLED
-                infl["content"] = {}
-                infl["content"]["view"] = conf["view_images"]
-                infl["content"]["state"] = conf["from_state"]
-                self.result.append(infl)
+#     @deprecated
+#       parse the description configurations
+#     def device_get_all_description_config(self):
+#         STEP0 = '''
+# ######################################################################
+# ###    Traverse static UI states for configurations extraction   #####
+# ######################################################################
+# '''
+#         print(STEP0)
+#         config_description_list = []
+#         for node in self.utg_graph.nodes:
+#             finished = self.device_to_state("", node.name)
+#             if (finished):
+#                 try:
+#                     configs = self.parse_all_views(self.device.get_current_state())
+#                     config_description = {}
+#                     config_description["state"] = node.name
+#                     config_description["configs"] = []
 
-    # analyze the state transition screenshots of the configs in conf_list with gpt
-    def device_guest_config_GPTAnalyze(self, host_analyzing_config: str):
-        STEP3 = '''
-###################################
-### Testing guest configs with GPT#
-###################################
-'''
-        print(STEP3)
-        for conf in self.conf_list:
-            out_dir = settings.UI_output + f"/{host_analyzing_config}/guest:" + conf["view_images"]
-            if (os.path.exists(out_dir + "/before.png") and os.path.exists(out_dir + "/after.png")):
-                time.sleep(1)
-                ret = UIComparator.identify_alert(out_dir + "/before.png", out_dir + "/after.png")
-                if (ret == "fail"):
-                    infl = {}
-                    infl["id"] = len(self.conf_list)
-                    infl["influenceType"] = settings.CONFIG_DISABLED
-                    infl["content"] = {}
-                    infl["content"]["view"] = conf["view_images"]
-                    infl["content"]["state"] = conf["from_state"]
-                    self.result.append(infl)
+#                     cid = 0
+#                     for c in configs:
+#                         cc = {}
+#                         cc["cid"] = cid
+#                         cid += 1
+#                         cc["description"] = c
+#                         config_description["configs"].append(cc)
+#                     config_description_list.append(config_description)
+#                 except Exception as e:
+#                     print(e)
 
-    def device_connect(self):
-        self.device = Device(device_serial=settings.device_serial, ignore_ad=True)
-        self.app = App(app_path=settings.app_path, output_dir=settings.Confiot_output)
-        #self.device.connect()
-        self.device.install_app(self.app)
-
-        print(DONE)
+#         json_str = json.dumps(config_description_list)
+#         with open(settings.Confiot_output + "/config_description_list.json", "w") as f:
+#             f.write(json_str)
+#         print(DONE)
 
     def device_map_config_resource(self):
         STEP0 = '''
@@ -140,11 +116,17 @@ class Confiot:
 '''
         print(STEP0)
 
-        paths = self.parse_UITree()
-        paths_str = ""
+        paths = {"UITree_paths": [], "text_paths": [], "states": []}
+        paths["UITree_paths"] = self.parse_UITree()
+        for p in paths["UITree_paths"]:
+            paths["states"].append(p[-1].state)
+        for p in paths["UITree_paths"]:
+            paths["text_paths"].append([i.description for i in p])
 
-        for p in paths:
+        paths_str = ""
+        for p in paths["text_paths"]:
             p_str = "\",\"".join(p)
+            p_str = p_str.replace("\n", ' ')
             paths_str += f"[\"{p_str}\"]\n"
 
         prompt = ''
@@ -163,6 +145,15 @@ class Confiot:
             with open(BASE_DIR + "/prompt/response.txt", "w") as f:
                 f.write(res)
             self.ConfigResourceMapper = parse_config_resource_mapping(res)
+
+        if (len(self.ConfigResourceMapper) != len(paths["states"])):
+            print("[ERR]: The Configuration paths returned from GPT are inconsistent with the origin paths!")
+
+        for i in range(len(self.ConfigResourceMapper)):
+            self.ConfigResourceMapper[i]["state"] = paths["states"][i]
+
+        with open(BASE_DIR + "/prompt/ConfigResourceMapping", 'w') as f:
+            f.write(json.dumps(self.ConfigResourceMapper))
 
         print(DONE)
         return self.ConfigResourceMapper
@@ -185,8 +176,8 @@ class Confiot:
                 r1 = self.device.adb.shell(f"uiautomator dump /sdcard/{ui_dump}")
                 r2 = self.device.adb.run_cmd(["pull", f"/sdcard/{ui_dump}", output_file])
         # failed to dump the UI Hierarchy with adb
-        except:
-            print("[DBG]: Failed to dump the UI Hierarchy with adb and try to dump with Accessibility!")
+        except Exception as e:
+            print("[DBG]: Failed to dump the UI Hierarchy with adb and try to dump with Accessibility!", e)
             try:
                 if (self.device.connected):
                     import xml.etree.ElementTree as ET
@@ -356,7 +347,7 @@ class Confiot:
         with open(settings.droid_output + "/utg.js", "r") as f:
             utg_content = f.read()
             if (utg_content != ''):
-                utg_content = utg_content.replace("var utg = ", '')
+                utg_content = utg_content.replace("var utg =", '')
                 utg_content = utg_content.replace(";", "")
                 utg_dict = json.loads(utg_content)
                 utg_nodes_dict = utg_dict["nodes"]
@@ -364,7 +355,7 @@ class Confiot:
 
                 for node in utg_nodes_dict:
                     activity = (node["package"] + node["activity"]).replace("}", "")
-                    if (activity == utg_dict["app_main_activity"]):
+                    if (utg_dict["app_main_activity"] in activity):
                         self.utg_graph.start_node = node["state_str"]
                         break
 
@@ -455,6 +446,8 @@ class Confiot:
         for src_state in self.utg_graph.edges_dict:
             for target_state in self.utg_graph.edges_dict[src_state]:
                 for event_str in self.utg_graph.edges_dict[src_state][target_state]:
+                    if (event_str not in self.events):
+                        continue
                     e = self.events[event_str]
 
                     # 不包括返回的边
@@ -467,10 +460,16 @@ class Confiot:
 
                         if (src_state not in config_nodes):
                             config_nodes[src_state] = []
-                        n = Node(config_id, description=config_description, state=src_state)
-                        event_config[event_str] = n
-                        config_nodes[src_state].append(n)
-                        self.uiTree.add_node(n)
+
+                        if (config_id not in self.uiTree.nodes_dict):
+                            n = Node(config_id, description=config_description, state=src_state)
+                            self.uiTree.nodes_dict[config_id] = n
+                            event_config[event_str] = n
+                            config_nodes[src_state].append(n)
+                            self.uiTree.add_node(n)
+                        else:
+                            event_config[event_str] = self.uiTree.nodes_dict[config_id]
+                            config_nodes[src_state].append(self.uiTree.nodes_dict[config_id])
 
         indegree = {}
         for n in self.uiTree.nodes:
@@ -501,7 +500,9 @@ class Confiot:
         config_paths = []
         for n in self.uiTree.nodes:
             p = self.uiTree.find_shortest_path(self.uiTree.start_node, n.name)
-            p = [i.description for i in p]
+            if (not p or p == []):
+                continue
+            # p = [i.description for i in p]
             config_paths.append(p)
 
         return config_paths
@@ -731,7 +732,7 @@ class ConfiotHost(Confiot):
 
 class ConfiotGuest(Confiot):
     # walk through all states and store the UI hierachy in UI/
-    def device_state_walker(self, host_analyzing_config: str):
+    def device_state_replay(self, host_analyzing_config: str):
         STEP1 = '''
 ###################################
 ### Traverse static UI states #####

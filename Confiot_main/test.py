@@ -6,10 +6,20 @@ sys.path.append(BASE_DIR + "/../")
 from Confiot_main.Confiot import ConfiotGuest, ConfiotHost, Confiot
 import xml.etree.ElementTree as ET
 from Confiot_main.UIComparator import UIComparator
+from Confiot_main.PolicyGenerator import PolicyGenerator
 import os
 
 # For test
-HOST_CONFIG_ANALYZED = "host:mihome_After_SHARE"
+HOST_CONFIG_ANALYZED = "host:August_on"
+
+
+######################################
+# util.py
+def test_parse_config_resource_map():
+    from Confiot_main.util import parse_config_resource_mapping
+    with open("prompt/response.txt") as f:
+        respond = f.read()
+        parse_config_resource_mapping(respond)
 
 
 def test_resize_png():
@@ -20,6 +30,7 @@ def test_resize_png():
 
 
 #####################################
+# Confiot.py
 
 
 def test_goto_state():
@@ -49,7 +60,7 @@ def test_state_walker():
 
     # print(confiot.events)
 
-    confiot.device_state_walker("A2DP_Start_at_Boot_off")
+    confiot.device_state_replay("A2DP_Start_at_Boot_off")
 
 
 def test_config_extract():
@@ -110,7 +121,7 @@ def test_device_guest_config_walker():
 
     # print(confiot.events)
 
-    confiot.device_state_walker(HOST_CONFIG_ANALYZED)
+    confiot.device_state_replay(HOST_CONFIG_ANALYZED)
     confiot.device_guest_config_walker(HOST_CONFIG_ANALYZED)
     confiot.device_guest_config_GPTAnalyze(HOST_CONFIG_ANALYZED)
 
@@ -132,7 +143,7 @@ def test_STEP1():
 
     # print(confiot.events)
 
-    confiot.device_state_walker(HOST_CONFIG_ANALYZED)
+    confiot.device_state_replay(HOST_CONFIG_ANALYZED)
 
 
 def test_host():
@@ -167,30 +178,28 @@ def test_get_ui_hierarchy():
 
 def test_mapping_uitree():
     import Confiot_main.settings as settings
-    from Confiot_main.util import query_config_resource_mapping, parse_config_resource_mapping
+    from Confiot_main.util import query_config_resource_mapping, parse_config_resource_mapping, get_ConfigResourceMapper_from_file
     # settings.device_serial = "192.168.31.218:5555"
     # settings.app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
-    # settings.droid_output = "/root/documents/droidbot-new/a2dp/"
+    # settings.droid_output = "/root/documents/Output/mihome/August/August/"
 
     confiot = Confiot()
+    policy_generator = PolicyGenerator()
     #confiot.device_connect()
 
     # print(confiot.events)
 
-    paths = confiot.device_map_config_resource()
+    os.environ["https_proxy"] = "http://192.168.72.1:1083"
+    # 请求GPT
+    # ConfigResourceMapper = confiot.device_map_config_resource()
+    # 使用文件读取mapper测试
+    ConfigResourceMapper = get_ConfigResourceMapper_from_file(BASE_DIR + "/prompt/ConfigResourceMapping")
 
-
-
-
-
-
-
-
-
+    policy_generator.Policy_generate_1("host_august_Edit_house_owner_not_check", "host_august_Edit_house_owner_check",
+                                       "51b1b582e9a5351503e9f7a195ce1f9e4674ccdf38cb61c00d4b6eac163a9a2c", ConfigResourceMapper)
 
 
 if __name__ == "__main__":
     #test_device_guest_config_walker()
-    # test_resize_png()
     # test_STEP0()
     test_mapping_uitree()

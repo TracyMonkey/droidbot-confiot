@@ -5,6 +5,7 @@ from openai import OpenAI
 from base64 import b64encode
 import os
 import re
+import json
 
 
 def deprecated(func):
@@ -170,7 +171,7 @@ class UITree(DirectedGraph):
 
         self.nodes_dict = {}
 
-        # event (config set to a specific value)
+        # event (represent the current value of the configuration)
         self.edges = []
         # {"src_node": {"dst_node": ["e1"]}}
         self.edges_dict = {}
@@ -181,17 +182,20 @@ class UITree(DirectedGraph):
 def parse_config_resource_mapping(text):
     ConfigResourceMapper = []
 
-    pattern = re.compile(r'Configuration path: (\[.*?\])\s+Task: (.*?)\s+Related resources: (.*?)', re.DOTALL)
+    pattern = re.compile(r'Configuration path: (\[.*?\]).*?\n.*?Task: (.*?)\n.*?Related resources: (.*?)\n', re.DOTALL)
     matches = pattern.findall(text)
+
+    # print(matches)
 
     for match in matches:
         try:
             config_path = eval(match[0])  # 使用 eval 将字符串转为列表
             task = match[1]
-            related_resources = match[2]
+            related_resources = match[2].split(',')
+            related_resources = [r.strip() for r in related_resources]
 
             ConfigResourceMapper.append({"Path": config_path, "Task": task, "Resources": related_resources})
-            
+
             print("Configuration Path:", config_path)
             print("Task:", task)
             print("Related Resources:", related_resources)
@@ -226,6 +230,15 @@ def query_config_resource_mapping(prompt):
     except Exception as e:
         print(e)
         return False
+
+
+def get_ConfigResourceMapper_from_file(file):
+    content = ''
+    with open(file, 'r') as f:
+        content = f.read()
+
+    ConfigResourceMapper = json.loads(content)
+    return ConfigResourceMapper
 
 
 if __name__ == "__main__":

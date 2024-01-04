@@ -2,29 +2,19 @@ import difflib
 import xml.dom.minidom
 import xmldiff.main as xml_diff
 import xml.etree.ElementTree as ET
-import os
+import os, sys
 import base64
 import requests
+import re
 
 from xmldiff import formatting
 from bs4 import BeautifulSoup
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR + "/../")
+
 import Confiot_main.settings as settings
 from Confiot_main.util import deprecated
-
-
-class PolicyGenerator:
-
-    def Policy_read(self, state_str):
-        hierachy_compare_result = self.compare_output_path + f"{state_str}.html"
-        UI_add = comparator.get_UI_add(hierachy_compare_result)
-        UI_delete = comparator.get_UI_delete(hierachy_compare_result)
-
-        for delete_node in UI_delete:
-            # 寻找node相关的资源：匹配state以及text description
-            pass
-
-        print(UI_add, UI_delete)
 
 
 class UIComparator:
@@ -51,24 +41,28 @@ class UIComparator:
 
     # detect the added nodes
     def get_UI_add(self, diff_html):
-        ui_adds = []
-        soup = BeautifulSoup(diff_html, 'html.parser')
-        for added_tag in soup.find_all(class_='diff_add'):
-            a = {'type': 'added', 'element': added_tag.text.strip()}
-            if (a["element"] == '' or a["element"] == 'Added'):
-                continue
-            ui_adds.append(a)
-        return ui_adds
+        with open(diff_html) as f:
+            diff_html = f.read()
+            ui_adds = []
+            soup = BeautifulSoup(diff_html, 'html.parser')
+            for added_tag in soup.find_all(class_='diff_add'):
+                a = {'type': 'added', 'element': added_tag.text.strip()}
+                if (a["element"] == '' or a["element"] == 'Added'):
+                    continue
+                ui_adds.append(a)
+            return ui_adds
 
     def get_UI_delete(self, diff_html):
-        ui_deletes = []
-        soup = BeautifulSoup(diff_html, 'html.parser')
-        for sub_tag in soup.find_all(class_='diff_sub'):
-            a = {'type': 'deleted', 'element': sub_tag.text.strip()}
-            if (a["element"] == '' or a["element"] == 'Deleted'):
-                continue
-            ui_deletes.append(a)
-        return ui_deletes
+        with open(diff_html) as f:
+            diff_html = f.read()
+            ui_deletes = []
+            soup = BeautifulSoup(diff_html, 'html.parser')
+            for sub_tag in soup.find_all(class_='diff_sub'):
+                a = {'type': 'deleted', 'element': sub_tag.text.strip()}
+                if (a["element"] == '' or a["element"] == 'Deleted'):
+                    continue
+                ui_deletes.append(a)
+            return ui_deletes
 
     def get_UI_properties_changed(self, diff_html):
         ui_deletes = []
@@ -228,16 +222,22 @@ class UIComparator:
 
 
 if __name__ == "__main__":
-    comparator = UIComparator("A2DP_Start_at_Boot_off", "A2DP_Start_at_Boot_on")
+    comparator = UIComparator("host_august_Edit_house_owner_not_check", "host_august_Edit_house_owner_check")
 
-    state_str = "819b47c5d517aba591f31b13343d5fde"
+    state_str = "51b1b582e9a5351503e9f7a195ce1f9e4674ccdf38cb61c00d4b6eac163a9a2c"
 
     UI_old = comparator.old_hierarchy_path + f"/{state_str}.xml"
     UI_new = comparator.new_hierarchy_path + f"/{state_str}.xml"
     compare_output_path = comparator.compare_output_path + f"/{state_str}.html"
     diff_html = comparator.compare_xml_files(UI_old, UI_new, compare_output_path)
 
-    UI_add = comparator.get_UI_add(diff_html)
-    UI_delete = comparator.get_UI_delete(diff_html)
+    UI_add = comparator.get_UI_add(compare_output_path)
+    UI_delete = comparator.get_UI_delete(compare_output_path)
 
-    print(UI_add, UI_delete)
+    # print(UI_add, UI_delete)
+
+    for add_node in UI_add:
+        text = re.findall("text=\"(.*?)\"", add_node["element"])
+        content = re.findall("content-desc=\"(.*?)\"", add_node["element"])
+
+        print(text, content)
