@@ -66,7 +66,7 @@ class DeviceState(object):
     def __get_hashed_state_str(self):
         state, _, _, _ = self.get_described_actions(remove_time_and_ip=True)
         hashed_string = tools.hash_string(state)
-        # print("[XXX]: ", state)
+        print("[XXX]: ", state)
         return hashed_string
 
     def to_dict(self):
