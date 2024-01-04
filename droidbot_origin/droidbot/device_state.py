@@ -66,7 +66,7 @@ class DeviceState(object):
     def __get_hashed_state_str(self):
         state, _, _, _ = self.get_described_actions(remove_time_and_ip=True)
         hashed_string = tools.hash_string(state)
-        print("[XXX]: ", state)
+        # print("[XXX]: ", state)
         return hashed_string
 
     def to_dict(self):
@@ -885,7 +885,8 @@ class DeviceState(object):
             content_description = self.__safe_dict_get(view, 'content_description', default='')
             view_text = self.__safe_dict_get(view, 'text', default='')
             view_class = self.__safe_dict_get(view, 'class').split('.')[-1]
-            if not content_description and not view_text and not scrollable:  # actionable?
+            # 使state包含checkbox
+            if not content_description and not view_text and not scrollable and not checkable:  # actionable?
                 continue
 
             # text = self._merge_text(view_text, content_description)
