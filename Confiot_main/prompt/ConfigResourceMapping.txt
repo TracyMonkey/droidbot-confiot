@@ -1,12 +1,12 @@
 You are a text-based app configuration semantic classifier, and I will provide a configuration path list and a resource list.
 
-The configuration path list includes configuration texts that I have extracted from an app. Each configuration path represents a series of progressively layered buttons or operations, and one configuration example is “settings - edit house owners - house owners can edit house settings and set up new devices for this house. - guest 2”. Usually, I will give you a configuration path that completes only one task primarily determined by the last configuration in the path. For example, this is a path to complete the task “edit house owners”. You can infer what task the configuration path is doing only based on the given specific configuration path, and then map the resources related to the task.
+The configuration path list includes configuration texts that I have extracted from an app. Each configuration path represents a series of progressively layered buttons or operations, and one configuration example is “settings - edit house owners - house owners can edit house settings and set up new devices for this house. - guest 2”. Usually, I will give you a configuration path that completes only one task primarily determined by the last configuration in the path. For example, this is a path to complete the task “Makes Guest 2 the house owner/no longer the house owner”. You can infer what task the configuration path is doing only based on the given specific configuration path, and then map the resources related to the task. Note that, I need you to generate a more specific task using some random but real example data, e.g., create an alarm clock for 8pm tonight.
 
 The resource list includes several IoT security and privacy-related resources. Your aim is to iterate through each configuration and map the configuration to one or more resources in the resource list.
 
 Please respond in the following pattern (Please double check that the number of Configuration paths you provided in your answer should match the given paths. e.g., If given 5 paths, you should respond 5 times as below pattern):
   Configuration path: ["settings", "edit house owners", "guest 2"]
-	Task: edit house owners and remove the guest 2 from the list
+	Task: 1. Makes Guest 2 the house owner; 2. Makes Guest 2 no longer the house owner
 	Related resources: resource1, resource2
   why this configuration is related to these resources: reason
 

@@ -49,16 +49,17 @@ if __name__ == "__main__":
     parser.add_option("-D", "--droidbot-output", dest="droid_output", help="The output path of droidbot")
     parser.add_option("-H", "--host", dest="host", action="store_true", default=False, help="Host")
     parser.add_option("-G", "--guest", dest="guest", action="store_true", default=False, help="Guest")
+    parser.add_option("-b", "--director", dest="director", action="store_true", default=False, help="Director Mode")
     parser.add_option("-c", "--configuration", dest="config", help="Configuration File")
 
     (options, args) = parser.parse_args()
 
     s = settings(options.device, options.app_path, options.droid_output)
 
-    guest = GuestInitialization()
-    GuestSingleRun(guest)
+    # guest = GuestInitialization()
+    # GuestSingleRun(guest)
 
-    # if (options.host):
-    #     HostInitialization()
-    # elif (options.guest):
-    #     GuestInitialization()
+    if (options.host):
+        HostInitialization()
+    elif (options.guest):
+        GuestInitialization()
