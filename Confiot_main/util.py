@@ -228,8 +228,8 @@ def query_config_resource_mapping(prompt):
     try:
         return response.json()["choices"][0]["message"]["content"]
     except Exception as e:
-        print(e)
-        return False
+        print("[GPT ERROR]: ", e, response.content)
+        return response.text
 
 
 def get_ConfigResourceMapper_from_file(file):

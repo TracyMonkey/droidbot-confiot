@@ -461,7 +461,7 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
                 import sys,os
                 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
                 sys.path.append(BASE_DIR + "/../../")
-                import Confiot_main.settings as settings
+                from Confiot_main.settings import settings
                 from droidbot.device_state import DeviceState
                 if (current_state.foreground_activity not in settings.bounds_map):
                     settings.bounds_map[current_state.foreground_activity] = {}

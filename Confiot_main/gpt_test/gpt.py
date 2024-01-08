@@ -6,7 +6,7 @@ import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR + "/../../")
 
-import Confiot_main.settings as settings
+from Confiot_main.settings import settings
 import shutil
 
 os.environ["https_proxy"] = "http://192.168.72.1:1083"

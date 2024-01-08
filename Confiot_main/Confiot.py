@@ -17,7 +17,7 @@ from droidbot_origin.droidbot.device import Device
 from droidbot_origin.droidbot.app import App
 from droidbot_origin.droidbot.device_state import DeviceState
 from Confiot_main.util import deprecated, DirectedGraph, Node, Edge, draw_rect_with_bounds, png_resize, UITree, query_config_resource_mapping, parse_config_resource_mapping
-import Confiot_main.settings as settings
+from Confiot_main.settings import settings
 from Confiot_main.UIComparator import UIComparator
 
 DONE = '''
@@ -108,7 +108,7 @@ class Confiot:
 #             f.write(json_str)
 #         print(DONE)
 
-    def device_map_config_resource(self):
+    def device_map_config_resource(self, output_path):
         STEP0 = '''
 ######################################################################
 #############    Configuration-Resources Mapping   ###################
@@ -141,9 +141,9 @@ class Confiot:
         # os.environ["https_proxy"] = "http://192.168.72.1:1083"
         res = query_config_resource_mapping(prompt)
 
+        with open(output_path + "/ConfigResourceMappingResponse.txt", "w") as f:
+            f.write(res)
         if (res):
-            with open(BASE_DIR + "/prompt/response.txt", "w") as f:
-                f.write(res)
             self.ConfigResourceMapper = parse_config_resource_mapping(res)
 
         if (len(self.ConfigResourceMapper) != len(paths["states"])):
@@ -152,7 +152,7 @@ class Confiot:
         for i in range(len(self.ConfigResourceMapper)):
             self.ConfigResourceMapper[i]["state"] = paths["states"][i]
 
-        with open(BASE_DIR + "/prompt/ConfigResourceMapping", 'w') as f:
+        with open(output_path + "/ConfigResourceMapping.txt", 'w') as f:
             f.write(json.dumps(self.ConfigResourceMapper))
 
         print(DONE)
@@ -354,8 +354,8 @@ class Confiot:
                 utg_edges_dict = utg_dict["edges"]
 
                 for node in utg_nodes_dict:
-                    activity = (node["package"] + node["activity"]).replace("}", "")
-                    if (utg_dict["app_main_activity"] in activity):
+                    activity = node["package"].replace("}", "")
+                    if (utg_dict["app_package"] in activity):
                         self.utg_graph.start_node = node["state_str"]
                         break
 
@@ -692,6 +692,9 @@ class Confiot:
 
 class ConfiotHost(Confiot):
 
+    def __init__(self) -> None:
+        super().__init__()
+
     # [TODO]: update
     def test_vistor_mode(self, config_description_list):
         for desc in config_description_list:
@@ -731,6 +734,10 @@ class ConfiotHost(Confiot):
 
 
 class ConfiotGuest(Confiot):
+
+    def __init__(self) -> None:
+        super().__init__()
+
     # walk through all states and store the UI hierachy in UI/
     def device_state_replay(self, host_analyzing_config: str):
         STEP1 = '''

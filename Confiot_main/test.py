@@ -148,20 +148,8 @@ def test_STEP1():
     confiot.device_state_replay(HOST_CONFIG_ANALYZED)
 
 
-def test_host():
-    import Confiot_main.settings as settings
-    settings.device_serial = "192.168.31.218:5555"
-    confiot = ConfiotHost()
-    confiot.device_connect()
-
-    # print(confiot.events)
-
-    #confiot.generate_tasks()
-    confiot.start_autodroid()
-
-
 def test_get_ui_hierarchy():
-    import Confiot_main.settings as settings
+    from Confiot_main.settings import settings
     import json
     settings.device_serial = "192.168.31.218:5555"
     confiot = ConfiotHost()
@@ -179,7 +167,7 @@ def test_get_ui_hierarchy():
 
 
 def test_mapping_uitree():
-    import Confiot_main.settings as settings
+    from Confiot_main.settings import settings
     from Confiot_main.util import query_config_resource_mapping, parse_config_resource_mapping, get_ConfigResourceMapper_from_file
     # settings.device_serial = "192.168.31.218:5555"
     # settings.app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
@@ -195,7 +183,7 @@ def test_mapping_uitree():
     # 请求GPT
     # ConfigResourceMapper = confiot.device_map_config_resource()
     # 使用文件读取mapper测试
-    ConfigResourceMapper = get_ConfigResourceMapper_from_file(BASE_DIR + "/prompt/ConfigResourceMapping")
+    ConfigResourceMapper = get_ConfigResourceMapper_from_file(settings.Confiot_output + "/ConfigResourceMapping.txt")
 
     policy_generator.Policy_generate_1("host_august_Edit_house_owner_not_check", "host_august_Edit_house_owner_check",
                                        "51b1b582e9a5351503e9f7a195ce1f9e4674ccdf38cb61c00d4b6eac163a9a2c", ConfigResourceMapper)

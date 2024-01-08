@@ -66,7 +66,8 @@ class DeviceState(object):
     def __get_hashed_state_str(self):
         state, _, _, _ = self.get_described_actions(remove_time_and_ip=True)
         hashed_string = tools.hash_string(state)
-        print("[XXX]: ", state)
+        # syncxxx； 输出state_str当前页面的所有view
+        # print("[XXX]: ", state)
         return hashed_string
 
     def to_dict(self):
@@ -467,7 +468,7 @@ class DeviceState(object):
         import sys
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         sys.path.append(BASE_DIR + "/../../")
-        import Confiot_main.settings as settings
+        from Confiot_main.settings import settings
 
         for view_dict in self.views:
             # [TODO-backbutton]: 将左上角的相关图片送到gpt中查询是否是back按钮
@@ -495,6 +496,15 @@ class DeviceState(object):
             # print(bounds)
             if (bounds and self.check_nearby_rectangles(rectangle=bounds, target_rectangle=back_baseline, threshold=50)):
                 print("[DBG]: Found back button:", bounds)
+                continue
+
+
+            # [TODO-backbutton]: 这里是为了排除back按钮，但是这个back按钮的resource_id是动态的，所以这里需要改进
+            precise_back_baseline = settings.precise_backs
+
+            # print(bounds)
+            if (bounds and self.check_nearby_rectangles(rectangle=bounds, target_rectangle=precise_back_baseline, threshold=1)):
+                print("[DBG]: Found precise matching back button:", bounds)
                 continue
 
             # # syncxxx: 过滤同一位置的按钮
