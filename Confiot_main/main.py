@@ -7,13 +7,18 @@ sys.path.append(BASE_DIR + "/../")
 
 from Confiot_main.Confiot import ConfiotGuest, ConfiotHost, Confiot
 from Confiot_main.settings import settings
+from Confiot_main.util import get_ConfigResourceMapper_from_file
 
 
 def HostInitialization():
     confiot = ConfiotHost()
 
     # 请求GPT
-    ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
+    ConfigResourceMapper = None
+    if (not os.path.exists(settings.Confiot_output + "/ConfigResourceMapping.txt")):
+        ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
+    else:
+        ConfigResourceMapper = get_ConfigResourceMapper_from_file(settings.Confiot_output + "/ConfigResourceMapping.txt")
     return confiot
 
 
@@ -22,11 +27,15 @@ def GuestInitialization():
     confiot.device_connect()
 
     # 请求GPT
-    ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
+    ConfigResourceMapper = None
+    if (not os.path.exists(settings.Confiot_output + "/ConfigResourceMapping.txt")):
+        ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
+    else:
+        ConfigResourceMapper = get_ConfigResourceMapper_from_file(settings.Confiot_output + "/ConfigResourceMapping.txt")
     return confiot
 
 
-def HostAction(actor: ConfiotHost, task, state):
+def HostAction(actor: ConfiotHost, task, task_state):
     from AutoDroid.droidbot import input_manager
     from AutoDroid.droidbot import input_policy
     from AutoDroid.droidbot import env_manager
@@ -50,7 +59,7 @@ def HostAction(actor: ConfiotHost, task, state):
                         grant_perm=True,
                         enable_accessibility_hard=True,
                         ignore_ad=True,
-                        state=state)
+                        state=task_state)
     droidbot.start()
 
 
@@ -93,8 +102,11 @@ if __name__ == "__main__":
     GuestActor = None
 
     if (options.host):
-        # HostActor = HostInitialization()
+        HostActor = HostInitialization()
         HostAction(None, "1. Set up an alarm on Huawei AI Speaker",
                    "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
     elif (options.guest):
         GuestActor = GuestInitialization()
+
+
+
