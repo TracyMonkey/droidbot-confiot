@@ -30,7 +30,7 @@ def HostAction(actor: ConfiotHost, task, state):
     from AutoDroid.droidbot import input_manager
     from AutoDroid.droidbot import input_policy
     from AutoDroid.droidbot import env_manager
-    from AutoDroid.droidbot import DroidBot
+    from AutoDroid.droidbot.droidbot import DroidBot
     from AutoDroid.droidbot.droidmaster import DroidMaster
 
     droidbot = DroidBot(app_path=settings.app_path,
@@ -74,8 +74,7 @@ if __name__ == "__main__":
     s = settings("14131FDF600073", "/root/documents/Output/Huawei_AI_Life/Huawei.apk",
                  "/root/documents/Output/Huawei_AI_Life/host/result")
     # HostActor = HostInitialization()
-    HostAction(None, "1. Set up an alarm on Huawei AI Speaker",
-               "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
+    HostAction(None, "2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
 
     # parser = OptionParser()
     # parser.add_option("-a", "--app-path", dest="app_path", help="The apk path of the target application")
