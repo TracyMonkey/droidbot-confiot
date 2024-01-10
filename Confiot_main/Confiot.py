@@ -772,6 +772,7 @@ class ConfiotGuest(Confiot):
                 infl["content"]["view"] = conf["view_images"]
                 infl["content"]["state"] = conf["from_state"]
                 self.result.append(infl)
+        print(DONE)
 
     # analyze the state transition screenshots of the configs in conf_list with gpt
     def device_guest_config_GPTAnalyze(self, host_analyzing_config: str):
@@ -799,3 +800,5 @@ class ConfiotGuest(Confiot):
                         infl["content"]["view"] = conf["view_images"]
                         infl["content"]["state"] = conf["from_state"]
                         self.result.append(infl)
+
+        print(DONE)

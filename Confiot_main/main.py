@@ -1,6 +1,7 @@
 from optparse import OptionParser
 import os
 import sys
+import re
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) + "/"
 sys.path.append(BASE_DIR + "/../")
@@ -35,7 +36,7 @@ def GuestInitialization():
     return confiot
 
 
-def HostAction(actor: ConfiotHost, task, task_state):
+def HostRunTask(task, task_state):
     from AutoDroid.droidbot import input_manager
     from AutoDroid.droidbot import input_policy
     from AutoDroid.droidbot import env_manager
@@ -63,18 +64,42 @@ def HostAction(actor: ConfiotHost, task, task_state):
     droidbot.start()
 
 
-def GuestAction(actor: ConfiotGuest, host_analyzing_config=""):
-    actor.device_state_replay("naozhong")
+def GuestRunAnalysis(host_analyzing_config=""):
+    actor = GuestInitialization()
+    actor.device_state_replay(host_analyzing_config)
+    actor.device_guest_config_walker(host_analyzing_config)
+    actor.device.disconnect()
 
 
-def Action(host, guest):
+def HostAction():
     # 主人开始task list中的任务
-    tasks = {"path_1": ["1. Set up an alarm on Huawei AI Speaker", "2. Remove an alarm"]}
-    for p in tasks:
-        GuestAction(guest)
-        for t in tasks[p]:
-            HostAction(host, t)
-            GuestAction(guest)
+    tasks = {0: [("2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489"),]}
+
+    for pid in tasks:
+        for t in tasks[pid]:
+            # 主人进行task t
+            HostRunTask(t[0], t[1])
+            input()
+
+
+def GuestAction():
+    # 主人开始task list中的任务
+    tasks = {0: [("2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489"),]}
+
+    for pid in tasks:
+        # 对于每条path代表的所有task进行前，完成一遍GuestRunAnalysis
+        host_analyzing_config = str(pid)
+        GuestRunAnalysis(host_analyzing_config)
+        for t in tasks[pid]:
+            cleaned_sentence = re.sub(r'[^a-zA-Z0-9 ]', '', t[0])
+            task_name = '_'.join(cleaned_sentence.split())
+            host_analyzing_config = str(pid) + "_" + task_name
+
+            # 主人进行task t
+            # HostRunTask(host, t)
+            input()
+            # 客人进行app分析
+            GuestRunAnalysis(host_analyzing_config)
 
 
 if __name__ == "__main__":
@@ -103,10 +128,6 @@ if __name__ == "__main__":
 
     if (options.host):
         HostActor = HostInitialization()
-        HostAction(None, "1. Set up an alarm on Huawei AI Speaker",
-                   "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
+        HostRunTask(None, "2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
     elif (options.guest):
-        GuestActor = GuestInitialization()
-
-
-
+        GuestAction()
