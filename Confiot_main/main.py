@@ -128,6 +128,7 @@ if __name__ == "__main__":
 
     if (options.host):
         HostActor = HostInitialization()
-        HostRunTask(None, "2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
+        HostAction()
+        # HostRunTask(None, "2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
     elif (options.guest):
         GuestAction()
