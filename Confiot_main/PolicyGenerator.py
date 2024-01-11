@@ -3,7 +3,7 @@ import os, sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR + "/../")
 
-import Confiot_main.settings as settings
+from Confiot_main.settings import settings
 from Confiot_main.util import deprecated
 from Confiot_main.UIComparator import UIComparator
 
@@ -13,7 +13,12 @@ import re
 class PolicyGenerator:
 
     # 通过分析STEP1:device_state_replay的输出结果，生成policy
-    def Policy_generate_1(self, host_analyzing_config_before, host_analyzing_config_after, state_str, ConfigResourceMapper):
+    def Policy_generate_1(self,
+                          host_analyzing_config_before,
+                          host_analyzing_config_after,
+                          state_str,
+                          ConfigResourceMapper,
+                          resource_changed=False):
         add_related_resources = set()
         remove_related_resources = set()
         potential_policies = []
@@ -58,3 +63,7 @@ class PolicyGenerator:
                             add_related_resources.add(r)
 
         print(add_related_resources)
+
+        # 如果相关的host的配置会导致资源增多或减少，但是客人没有看到改变，则生成一条客人无法看见的policy
+        if (resource_changed and len(add_related_resources) == 0):
+            pass

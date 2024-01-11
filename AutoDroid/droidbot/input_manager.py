@@ -27,10 +27,19 @@ class InputManager(object):
     This class manages all events to send during app running
     """
 
-    def __init__(self, device, app, task, policy_name, random_input,
-                 event_count, event_interval,
-                 script_path=None, profiling_method=None, master=None,
-                 replay_output=None):
+    def __init__(self,
+                 device,
+                 app,
+                 task,
+                 policy_name,
+                 random_input,
+                 event_count,
+                 event_interval,
+                 script_path=None,
+                 profiling_method=None,
+                 master=None,
+                 replay_output=None,
+                 state=None):
         """
         manage input event sent to the target device
         :param device: instance of Device
@@ -52,6 +61,7 @@ class InputManager(object):
         self.event_count = event_count
         self.event_interval = event_interval
         self.replay_output = replay_output
+        self.state = state
 
         self.monkey = None
 
@@ -108,7 +118,6 @@ class InputManager(object):
                 break
         event_log.stop()
 
-
     def start(self):
         """
         start sending event
@@ -132,9 +141,7 @@ class InputManager(object):
                               "" if self.app.get_package_name() is None else "-p " + self.app.get_package_name(),
                               throttle,
                               self.event_count)
-                self.monkey = subprocess.Popen(monkey_cmd.split(),
-                                               stdout=subprocess.PIPE,
-                                               stderr=subprocess.PIPE)
+                self.monkey = subprocess.Popen(monkey_cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 for monkey_out_line in iter(self.monkey.stdout.readline, ''):
                     if not isinstance(monkey_out_line, str):
                         monkey_out_line = monkey_out_line.decode()
@@ -169,4 +176,3 @@ class InputManager(object):
             if pid is not None:
                 self.device.adb.shell("kill -9 %d" % pid)
         self.enabled = False
-

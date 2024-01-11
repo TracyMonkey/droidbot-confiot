@@ -135,9 +135,7 @@ class InputManager(object):
                               "" if self.app.get_package_name() is None else "-p " + self.app.get_package_name(),
                               throttle,
                               self.event_count)
-                self.monkey = subprocess.Popen(monkey_cmd.split(),
-                                               stdout=subprocess.PIPE,
-                                               stderr=subprocess.PIPE)
+                self.monkey = subprocess.Popen(monkey_cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 for monkey_out_line in iter(self.monkey.stdout.readline, ''):
                     if not isinstance(monkey_out_line, str):
                         monkey_out_line = monkey_out_line.decode()
@@ -172,4 +170,3 @@ class InputManager(object):
             if pid is not None:
                 self.device.adb.shell("kill -9 %d" % pid)
         self.enabled = False
-

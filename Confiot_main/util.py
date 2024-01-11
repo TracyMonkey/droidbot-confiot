@@ -182,7 +182,7 @@ class UITree(DirectedGraph):
 def parse_config_resource_mapping(text):
     ConfigResourceMapper = []
 
-    pattern = re.compile(r'Configuration path: (\[.*?\]).*?\n.*?Task: (.*?)\n.*?Related resources: (.*?)\n', re.DOTALL)
+    pattern = re.compile(r'Configuration path: (\[.*?\]).*?\n.*?Tasks: (.*?)\n.*?Related resources: (.*?)\n', re.DOTALL)
     matches = pattern.findall(text)
 
     # print(matches)
@@ -228,8 +228,8 @@ def query_config_resource_mapping(prompt):
     try:
         return response.json()["choices"][0]["message"]["content"]
     except Exception as e:
-        print(e)
-        return False
+        print("[GPT ERROR]: ", e, response.content)
+        return response.text
 
 
 def get_ConfigResourceMapper_from_file(file):

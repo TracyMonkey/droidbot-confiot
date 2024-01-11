@@ -49,6 +49,8 @@ POLICY_MEMORY_GUIDED = "memory_guided"  # implemented in input_policy2
 FINISHED = "task_completed"
 MAX_SCROLL_NUM = 7
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 class InputInterruptedException(Exception):
     pass
@@ -78,13 +80,14 @@ class InputPolicy(object):
         try:
             stack = self.device.get_current_activity_stack()
             current_package = None
-            for acts in stack:
-                acts_package = acts.split("/")[0]
-                if (acts_package != current_package and acts_package != "com.android.systemui" and acts_package != ""):
-                    if (acts_package == self.app.get_package_name()):
-                        break
-                    current_package = acts_package
-                    self.device.adb.shell("am force-stop " + current_package)
+            if(stack):
+                for acts in stack:
+                    acts_package = acts.split("/")[0]
+                    if (acts_package != current_package and acts_package != "com.android.systemui" and acts_package != ""):
+                        if (acts_package == self.app.get_package_name()):
+                            break
+                        current_package = acts_package
+                        self.device.adb.shell("am force-stop " + current_package)
             stop_app_intent = self.app.get_stop_intent()
             go_back_event = IntentEvent(stop_app_intent)
             go_back_event.send(self.device)
@@ -92,8 +95,8 @@ class InputPolicy(object):
             print("[ERR]: Cannot stop app caused by: ", e)
 
     # syncxxx: 开始task前进入task相应的前置状态
-    def Confiot_toState(self,input_manager):
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    def Confiot_toState(self, input_manager):
+
         sys.path.append(BASE_DIR + "/../../")
         from Confiot_main.Confiot import Confiot
 
@@ -101,13 +104,12 @@ class InputPolicy(object):
         self.device.start_app(self.app)
         time.sleep(3)
         cf = Confiot()
-        events = cf.TOSTATE("fcaf9e45619dd1e264000c5515def7885d83689583caa6205074af2324abd209",self.app, self.device)
-        if(events):
+        events = cf.TOSTATE(input_manager.state, self.app, self.device)
+        if (events):
             for e in events:
                 input_manager.add_event(e)
                 self.action_count += 1
         # input()
-
 
     def start(self, input_manager):
         """
@@ -738,11 +740,11 @@ class TaskPolicy(UtgBasedInputPolicy):
         model = INSTRUCTOR('hkunlp/instructor-xl')
         task_embedding = model.encode('task: ' + self.task).reshape(1, -1)
 
-        with open('memory/node_filtered_elements.json') as file:
+        with open(BASE_DIR + "/../" + 'memory/node_filtered_elements.json') as file:
             ele_statements = json.load(file)
-        with open('memory/element_description.json') as file:
+        with open(BASE_DIR + "/../" + 'memory/element_description.json') as file:
             ele_functions = json.load(file)
-        with open('memory/embedded_elements_desc.json') as file:
+        with open(BASE_DIR + "/../" + 'memory/embedded_elements_desc.json') as file:
             embeddings = json.load(file)
         app_name = self.device.output_dir.split('/')[-1]
         if app_name not in embeddings.keys():
@@ -865,7 +867,6 @@ class TaskPolicy(UtgBasedInputPolicy):
         scrollable_views = current_state.get_scrollable_views()  #self._get_scrollable_views(current_state)
         # syncxxxx: 禁止滑动
         scrollable_views = []
-
 
         if len(scrollable_views) > 0:
             '''

@@ -2,7 +2,11 @@ from openai import OpenAI
 from base64 import b64encode
 import os
 import sys
-import Confiot_main.settings as settings
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR + "/../../")
+
+from Confiot_main.settings import settings
 import shutil
 
 os.environ["https_proxy"] = "http://192.168.72.1:1083"
