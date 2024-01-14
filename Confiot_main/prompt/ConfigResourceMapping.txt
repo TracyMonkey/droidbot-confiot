@@ -9,7 +9,7 @@ Please respond in the following pattern (Please double check that the number of 
   Configuration path: ["settings", "edit house owners", "guest 2"]
 	Tasks: 1. Makes Guest 2 the house owner; 2. Makes Guest 2 no longer the house owner
 	Related resources: resource1, resource2
-  why this configuration is related to these resources: reason
+  why this configuration is related to these resources, please think step by step: reason
 
 The configuration path list is:
 {{PATHLIST}}
