@@ -498,7 +498,6 @@ class DeviceState(object):
                 print("[DBG]: Found back button:", bounds)
                 continue
 
-
             # [TODO-backbutton]: 这里是为了排除back按钮，但是这个back按钮的resource_id是动态的，所以这里需要改进
             precise_back_baseline = settings.precise_backs
 
@@ -517,9 +516,16 @@ class DeviceState(object):
             #     settings.bounds_map[self.foreground_activity][bounds_str] = 0
 
             # exclude navigation bar if exists
-            if self.__safe_dict_get(view_dict, 'enabled') and \
-                    self.__safe_dict_get(view_dict, 'visible') and \
-                    self.__safe_dict_get(view_dict, 'resource_id') not in \
+            # if self.__safe_dict_get(view_dict, 'enabled') and \
+            #         self.__safe_dict_get(view_dict, 'visible') and \
+            #         self.__safe_dict_get(view_dict, 'resource_id') not in \
+            #    ['android:id/navigationBarBackground',
+            #     'android:id/statusBarBackground',
+            #     ]:
+            #     enabled_view_ids.append(view_dict['temp_id'])
+
+            # syncxxx: 允许点击visible为false的按钮
+            if self.__safe_dict_get(view_dict, 'resource_id') not in \
                ['android:id/navigationBarBackground',
                 'android:id/statusBarBackground',
                 ]:
