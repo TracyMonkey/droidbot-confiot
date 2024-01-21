@@ -1,0 +1,81 @@
+{
+  "views": {
+      "SETTINGS": {
+        "in_coordinates": [
+            [
+                810,
+                2211
+            ],
+            [
+                1080,
+                2255
+            ]
+          ],
+          "out_coordinates": [
+              [
+                  810,
+                  2300
+              ],
+              [
+                  1080,
+                  2300
+              ],
+              [
+                  810,
+                  2400
+              ],
+              [
+                  1080,
+                  2400
+              ]
+          ]
+      },
+      "settings_house_edit_owners": {
+          "text": "Edit House Owners",
+          "class": ".*TextView"
+      }
+  },
+  "states": {
+      "setting_state": {
+          "activity": ".*ui.main.house.HouseActivity",
+          "views": [
+              "SETTINGS"
+          ]
+      },
+      "edit_owner_state": {
+          "activity": ".*ui.main.house.HouseActivity",
+          "views": [
+              "settings_house_edit_owners"
+          ]
+      }
+  },
+  "operations": {
+      "goto_settings": [
+          {
+              "event_type": "touch",
+              "target_view": "SETTINGS"
+          }
+      ],
+      "edit_house_owner": [
+          {
+              "event_type": "touch",
+              "target_view": "settings_house_edit_owners"
+          }
+      ]
+  },
+  "main": {
+      "setting_state": [
+          {
+            "op_id": "goto_settings",
+            "prob": 0.3
+          }
+          
+      ],
+      "edit_owner_state": [
+          {
+              "op_id": "edit_house_owner",
+              "prob": 1
+          }
+      ]
+  }
+}
