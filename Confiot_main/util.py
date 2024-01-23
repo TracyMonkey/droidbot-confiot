@@ -182,20 +182,23 @@ class UITree(DirectedGraph):
 def parse_config_resource_mapping(text):
     ConfigResourceMapper = []
 
-    pattern = re.compile(r'Configuration path: (\[.*?\]).*?\n.*?Tasks: (.*?)\n.*?Related resources: (.*?)\n', re.DOTALL)
+    pattern = re.compile(r'Action path id: (.*?)\n.*?Action path: (\[.*?\]).*?\n.*?Tasks: (.*?)\n.*?Related resources: (.*?)\n',
+                         re.DOTALL)
     matches = pattern.findall(text)
 
     # print(matches)
 
     for match in matches:
         try:
-            config_path = eval(match[0])  # 使用 eval 将字符串转为列表
-            task = match[1]
-            related_resources = match[2].split(',')
+            config_id = int(match[0].replace('<', '').replace('>', ''))
+            config_path = eval(match[1])  # 使用 eval 将字符串转为列表
+            task = match[2]
+            related_resources = match[3].split(',')
             related_resources = [r.strip() for r in related_resources]
 
-            ConfigResourceMapper.append({"Path": config_path, "Task": task, "Resources": related_resources})
+            ConfigResourceMapper.append({"Id": config_id, "Path": config_path, "Task": task, "Resources": related_resources})
 
+            print("Configuration Id:", config_id)
             print("Configuration Path:", config_path)
             print("Task:", task)
             print("Related Resources:", related_resources)

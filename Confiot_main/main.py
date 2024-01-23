@@ -103,7 +103,7 @@ def GuestAction():
 
 
 if __name__ == "__main__":
-    # os.environ["https_proxy"] = "http://192.168.72.1:1083"
+    os.environ["https_proxy"] = "http://192.168.72.1:1083"
 
     # s = settings("14131FDF600073", "/root/documents/Output/Huawei_AI_Life/Huawei.apk",
     #              "/root/documents/Output/Huawei_AI_Life/host/result")
@@ -128,6 +128,6 @@ if __name__ == "__main__":
 
     if (options.host):
         HostActor = HostInitialization()
-        HostAction()
+        # HostAction()
     elif (options.guest):
         GuestAction()

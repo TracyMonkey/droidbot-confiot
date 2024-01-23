@@ -181,9 +181,9 @@ def test_mapping_uitree():
 
     os.environ["https_proxy"] = "http://192.168.72.1:1083"
     # 请求GPT
-    # ConfigResourceMapper = confiot.device_map_config_resource()
+    ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
     # 使用文件读取mapper测试
-    ConfigResourceMapper = get_ConfigResourceMapper_from_file(settings.Confiot_output + "/ConfigResourceMapping.txt")
+    # ConfigResourceMapper = get_ConfigResourceMapper_from_file(settings.Confiot_output + "/ConfigResourceMapping.txt")
 
     policy_generator.Policy_generate_1("host_august_Edit_house_owner_not_check", "host_august_Edit_house_owner_check",
                                        "51b1b582e9a5351503e9f7a195ce1f9e4674ccdf38cb61c00d4b6eac163a9a2c", ConfigResourceMapper)

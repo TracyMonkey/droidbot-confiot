@@ -123,34 +123,45 @@ class Confiot:
         for p in paths["UITree_paths"]:
             paths["text_paths"].append([i.description for i in p])
 
-        paths_str = ""
+        paths_str_list = []
+        paths_frags = []
+        frags_size = len(paths["text_paths"]) % 20
+        id = 0
         for p in paths["text_paths"]:
             p_str = "\",\"".join(p)
             p_str = p_str.replace("\n", ' ')
-            paths_str += f"[\"{p_str}\"]\n"
-
-        prompt = ''
-        with open(BASE_DIR + "/prompt/ConfigResourceMapping.txt") as f:
-            prompt = f.read()
-
-        prompt = prompt.replace("{{PATHLIST}}", paths_str)
-        print(prompt)
-        print(
-            "----------------------------------------------------------------------------------------------------------------------------------------------"
-        )
-        # os.environ["https_proxy"] = "http://192.168.72.1:1083"
-        res = query_config_resource_mapping(prompt)
+            paths_str_list.append(f"{id}: [\"{p_str}\"]\n")
+            id += 1
 
         with open(output_path + "/ConfigResourceMappingResponse.txt", "w") as f:
-            f.write(res)
-        if (res):
-            self.ConfigResourceMapper = parse_config_resource_mapping(res)
+            f.write('')
 
-        if (len(self.ConfigResourceMapper) != len(paths["states"])):
-            print("[ERR]: The Configuration paths returned from GPT are inconsistent with the origin paths!")
+        for i in range(frags_size):
+            paths_str = ''.join(paths_str_list[i * 20:(i + 1) * 20])
+
+            prompt = ''
+            with open(BASE_DIR + "/prompt/ConfigResourceMapping.txt") as f:
+                prompt = f.read()
+
+            prompt = prompt.replace("{{PATHLIST}}", paths_str)
+            print(prompt)
+            print(
+                "----------------------------------------------------------------------------------------------------------------------------------------------"
+            )
+            # os.environ["https_proxy"] = "http://192.168.72.1:1083"
+            res = query_config_resource_mapping(prompt)
+
+            with open(output_path + "/ConfigResourceMappingResponse.txt", "a") as f:
+                f.write(res)
+            if (res):
+                self.ConfigResourceMapper += parse_config_resource_mapping(res)
+
+            # if (len(self.ConfigResourceMapper) != len(paths["states"])):
+            #     print("[ERR]: The Configuration paths returned from GPT are inconsistent with the origin paths!")
 
         for i in range(len(self.ConfigResourceMapper)):
-            self.ConfigResourceMapper[i]["state"] = paths["states"][i]
+            config_id = self.ConfigResourceMapper[i]["Id"]
+            self.ConfigResourceMapper[i]["state"] = paths["states"][config_id]
 
         with open(output_path + "/ConfigResourceMapping.txt", 'w') as f:
             f.write(json.dumps(self.ConfigResourceMapper))
@@ -396,14 +407,22 @@ class Confiot:
                     print(f"[ERR]: Failed to parse the state file `{j}`\n" + str(e))
 
     # 获取与config_id配置相关的文本描述（child/brother node）
-    def get_related_descrition(self, state, config_id):
+    def get_related_descrition(self, state, config_id, view_str):
         config_description = ""
 
         if (state not in self.state_contents):
             return -1
         if (config_id >= len(self.state_contents[state])):
             return -1
-        current_config = self.state_contents[state][config_id]
+
+        current_config = None
+        for c in self.state_contents[state]:
+            if (c["view_str"] == view_str):
+                current_config = c
+                break
+
+        if (not current_config):
+            return config_description
         child_configs = current_config['children']
 
         if ("content_description" in current_config and current_config["content_description"] and
@@ -413,7 +432,7 @@ class Confiot:
             config_description = config_description + f";{current_config['text']}"
 
         for ch in child_configs:
-            desc = self.get_related_descrition(state, ch)
+            desc = self.get_related_descrition(state, ch, self.state_contents[state][ch]["view_str"])
             if (desc != -1 and desc != ''):
                 config_description = config_description + desc
 
@@ -456,11 +475,14 @@ class Confiot:
 
                     if ('view' in e):
                         config_id = str(e['view']['temp_id'])
-                        config_description = self.get_related_descrition(src_state, int(config_id))
+                        parent = str(e['view']['parent'])
+                        view_str = e['view']["view_str"]
+                        config_description = self.get_related_descrition(src_state, int(config_id), view_str)
 
                         if (src_state not in config_nodes):
                             config_nodes[src_state] = []
 
+                        config_id = config_id + "-" + parent
                         if (config_id not in self.uiTree.nodes_dict):
                             n = Node(config_id, description=config_description, state=src_state)
                             self.uiTree.nodes_dict[config_id] = n
