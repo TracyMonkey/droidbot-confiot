@@ -36,6 +36,7 @@ class Confiot:
         self.uiTree: UITree = None
         # [{"Path": config_path, "Task": task, "Resources": related_resources, "state":state_str}]
         self.ConfigResourceMapper = []
+        self.FilteredConfigResourceMapper = []
 
         # {"event_str": event_json_path}
         self.events_fpath = {}
@@ -182,29 +183,29 @@ class Confiot:
             os.makedirs(output_path)
 
         try:
-            ui_dump = output_file.replace('/', '_')
-            if (self.device and self.app):
-                r1 = self.device.adb.shell(f"uiautomator dump /sdcard/{ui_dump}")
-                r2 = self.device.adb.run_cmd(["pull", f"/sdcard/{ui_dump}", output_file])
-        # failed to dump the UI Hierarchy with adb
-        except Exception as e:
-            print("[DBG]: Failed to dump the UI Hierarchy with adb and try to dump with Accessibility!", e)
-            try:
-                if (self.device.connected):
-                    import xml.etree.ElementTree as ET
-                    views = self.device.get_views()
-                    root = ET.Element('Hierarchy')
+            if (self.device.connected):
+                import xml.etree.ElementTree as ET
+                views = self.device.get_views()
+                root = ET.Element('Hierarchy')
 
-                    for item in views:
-                        entry = ET.SubElement(root, 'Node')
-                        for key, value in item.items():
-                            ET.SubElement(entry, key).text = str(value)
-                    tree = ET.ElementTree(root)
-                    tree.write(output_file)
-                else:
-                    print("[ERR]: Device not connected!")
+                for item in views:
+                    entry = ET.SubElement(root, 'Node')
+                    for key, value in item.items():
+                        ET.SubElement(entry, key).text = str(value)
+                tree = ET.ElementTree(root)
+                tree.write(output_file)
+            else:
+                print("[ERR]: Device not connected!")
+        except Exception as e:
+            print("[ERR]: Failed to dump the UI Hierachy!", e)
+            try:
+                ui_dump = output_file.replace('/', '_')
+                if (self.device and self.app):
+                    r1 = self.device.adb.shell(f"uiautomator dump /sdcard/{ui_dump}")
+                    r2 = self.device.adb.run_cmd(["pull", f"/sdcard/{ui_dump}", output_file])
+            # failed to dump the UI Hierarchy with adb
             except Exception as e:
-                print("[ERR]: Failed to dump the UI Hierachy!", e)
+                print("[DBG]: Failed to dump the UI Hierarchy with adb and try to dump with Accessibility!", e)
 
     def device_screenshot(self, store_dir: str):
         local_image_path = store_dir
@@ -298,10 +299,10 @@ class Confiot:
     def device_guest_config_test(self, host_analyzing_config: str, guest_config):
         conf_activity_dict = guest_config
         target_state = conf_activity_dict["from_state"]
-        config_view_name = guest_config["view_images"]
+        config_view_name = guest_config["view_images"] + str(guest_config["event_id"])
         config_event = conf_activity_dict["event"]
         config_bounds = conf_activity_dict["bounds"]
-        config_bounds = f"[{config_bounds[0][0]},{config_bounds[0][1]}][{config_bounds[1][0]},{config_bounds[1][1]}]"
+        config_bounds = f"[{config_bounds[0][0]}, {config_bounds[0][1]}], [{config_bounds[1][0]}, {config_bounds[1][1]}]"
 
         print("[DBG]: {host}: " + host_analyzing_config + "{guest}: " + config_view_name)
 
@@ -325,11 +326,11 @@ class Confiot:
             print("[ERR]: Failed to goto target state to test config :", guest_config)
             return None
 
-        if (os.path.exists(out_dir + "/before.xml") and os.path.exists(out_dir + "/after.xml")):
-            return UIComparator.compare_xml_files_with_bounds(out_dir + "/before.xml", out_dir + "/after.xml", config_bounds)
-        else:
-            print("[ERR]: Failed to generate UI hierachy for: ", guest_config)
-            return None
+        # if (os.path.exists(out_dir + "/before.xml") and os.path.exists(out_dir + "/after.xml")):
+        #     return UIComparator.compare_xml_files_with_bounds(out_dir + "/before.xml", out_dir + "/after.xml", config_bounds)
+        # else:
+        #     print("[ERR]: Failed to generate UI hierachy for: ", guest_config)
+        #     return None
 
     ###############################################################
     ###############################################################
@@ -431,6 +432,17 @@ class Confiot:
         if ("text" in current_config and current_config["text"] and current_config["text"] != ''):
             config_description = config_description + f";{current_config['text']}"
 
+        popup = config_description.lower()
+        if ("cancel" in popup or "apply" in popup or "yes" in popup or "confirm" in popup or "确定" in popup or "取消" in popup):
+            config_description = ""
+            for pops_text in self.state_contents[state]:
+                if ("content_description" in pops_text and pops_text["content_description"] and
+                        pops_text["content_description"] != ''):
+                    config_description = config_description + f"{pops_text['content_description']}"
+                if ("text" in pops_text and pops_text["text"] and pops_text["text"] != ''):
+                    config_description = config_description + f";{pops_text['text']}"
+            return config_description
+
         for ch in child_configs:
             desc = self.get_related_descrition(state, ch, self.state_contents[state][ch]["view_str"])
             if (desc != -1 and desc != ''):
@@ -504,6 +516,9 @@ class Confiot:
                     continue
                 event_str = utg_edge['events'][0]['event_str']
                 if event_str not in event_config:
+                    continue
+
+                if (indegree[config] > 2):
                     continue
                 e = Edge(event_config[event_str], config, event_str)
                 indegree[config] += 1
@@ -761,22 +776,33 @@ class ConfiotGuest(Confiot):
         super().__init__()
 
     # walk through all states and store the UI hierachy in UI/
-    def device_state_replay(self, host_analyzing_config: str):
+    def device_state_replay(self, host_analyzing_config: str, replay_point=''):
         STEP1 = '''
 ###################################
 ### Traverse static UI states #####
 ###################################
 '''
         print(STEP1)
+
+        begin_flag = False
+
+        if (replay_point == ''):
+            begin_flag = True
         for node in self.utg_graph.nodes:
-            finished = self.device_to_state(host_analyzing_config, node.name)
-            if (finished):
-                self.device_get_UIElement(host_analyzing_config, node.name)
+            if (replay_point != '' and not begin_flag):
+                if (node.name == replay_point):
+                    begin_flag = True
+                else:
+                    continue
+            if (begin_flag):
+                finished = self.device_to_state(host_analyzing_config, node.name)
+                if (finished):
+                    self.device_get_UIElement(host_analyzing_config, node.name)
 
         print(DONE)
 
     # get all configurations list and test them one by one
-    def device_guest_config_walker(self, host_analyzing_config: str):
+    def device_guest_config_walker(self, host_analyzing_config: str, walker_point=''):
         # test all configs in conf_list and genreate UI hierachy and screenshots
         STEP2 = '''
 ###################################
@@ -784,16 +810,33 @@ class ConfiotGuest(Confiot):
 ###################################
 '''
         print(STEP2)
+
+        begin_flag = False
+
+        if (walker_point == ''):
+            begin_flag = True
+
+        target_states = []
         for conf in self.conf_list:
-            enabled = self.device_guest_config_test(host_analyzing_config, conf)
-            if (not enabled):
-                infl = {}
-                infl["id"] = len(self.conf_list)
-                infl["influenceType"] = settings.CONFIG_DISABLED
-                infl["content"] = {}
-                infl["content"]["view"] = conf["view_images"]
-                infl["content"]["state"] = conf["from_state"]
-                self.result.append(infl)
+            if (walker_point != '' and not begin_flag):
+                if (conf["view_images"] + str(conf["event_id"]) == walker_point):
+                    begin_flag = True
+                else:
+                    continue
+            if (begin_flag):
+                if (conf["to_state"] in target_states):
+                    continue
+                else:
+                    target_states.append(conf["to_state"])
+                enabled = self.device_guest_config_test(host_analyzing_config, conf)
+                if (not enabled):
+                    infl = {}
+                    infl["id"] = len(self.conf_list)
+                    infl["influenceType"] = settings.CONFIG_DISABLED
+                    infl["content"] = {}
+                    infl["content"]["view"] = conf["view_images"]
+                    infl["content"]["state"] = conf["from_state"]
+                    self.result.append(infl)
         print(DONE)
 
     # analyze the state transition screenshots of the configs in conf_list with gpt

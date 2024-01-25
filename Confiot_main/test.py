@@ -123,9 +123,9 @@ def test_device_guest_config_walker():
 
     # print(confiot.events)
 
-    confiot.device_state_replay(HOST_CONFIG_ANALYZED)
+    # confiot.device_state_replay(HOST_CONFIG_ANALYZED)
     confiot.device_guest_config_walker(HOST_CONFIG_ANALYZED)
-    confiot.device_guest_config_GPTAnalyze(HOST_CONFIG_ANALYZED)
+    # confiot.device_guest_config_GPTAnalyze(HOST_CONFIG_ANALYZED)
 
     print(confiot.result)
 
@@ -192,4 +192,5 @@ def test_mapping_uitree():
 if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_STEP0()
-    test_mapping_uitree()
+
+    test_goto_state()

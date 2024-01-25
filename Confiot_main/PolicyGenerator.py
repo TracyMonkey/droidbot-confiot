@@ -25,21 +25,41 @@ class PolicyGenerator:
 
         comparator = UIComparator(host_analyzing_config_before, host_analyzing_config_after)
 
+        UI_old = comparator.old_hierarchy_path + f"/{state_str}.xml"
+        UI_new = comparator.new_hierarchy_path + f"/{state_str}.xml"
         hierachy_compare_result = comparator.compare_output_path + f"{state_str}.html"
+
+        if (not os.path.exists(UI_old) or not os.path.exists(UI_new)):
+            return potential_policies
+
+        comparator.compare_xml_files(UI_old, UI_new, hierachy_compare_result)
+
         UI_add = comparator.get_UI_add(hierachy_compare_result)
         UI_delete = comparator.get_UI_delete(hierachy_compare_result)
 
         # print(UI_add, UI_delete)
 
-        for node in UI_add:
-            text = re.findall("text=\"(.*?)\"", node["element"])
+        change_nodes_count = 0
+        for n in UI_add:
+            if ("<Node>" in n["element"]):
+                change_nodes_count += 1
+        for n in UI_delete:
+            if ("<Node>" in n["element"]):
+                change_nodes_count += 1
+
+        # 未进入同一个state
+        if (change_nodes_count > 10):
+            return potential_policies
+
+        for node in UI_add + UI_delete:
+            text = re.findall("<text>(.*?)</text>", node["element"])
             if (text):
-                text = text[0].strip()
+                text = text[0].replace("\n", '').replace(' ', '').replace('\t', '').replace("None", '')
             else:
                 text = ""
-            content = re.findall("content-desc=\"(.*?)\"", node["element"])
+            content = re.findall("<content_description>(.*?)</content_description>", node["element"])
             if (content):
-                content = content[0].strip()
+                content = content[0].replace("\n", '').replace(' ', '').replace('\t', '').replace("None", '')
             else:
                 content = ""
 
@@ -54,11 +74,11 @@ class PolicyGenerator:
                     if (state_str != cr["state"]):
                         continue
 
-                    if (text != '' and text in cr["Path"][-1]):
+                    if (text != '' and text in cr["Path"][-1].replace("\n", '').replace(' ', '').replace('\t', '')):
                         for r in cr["Resources"]:
                             add_related_resources.add(r)
 
-                    if (content != '' and content in cr["Path"][-1]):
+                    if (content != '' and content in cr["Path"][-1].replace("\n", '').replace(' ', '').replace('\t', '')):
                         for r in cr["Resources"]:
                             add_related_resources.add(r)
 

@@ -131,23 +131,46 @@ class UIComparator:
         after_root = after_xml.getroot()
 
         print("[DBG]: Finding config in bounds: ", bounds)
-        before_config_node = before_root.findall(f".//*[@bounds='{bounds}']")
-        after_config_node = after_root.findall(f".//*[@bounds='{bounds}']")
 
-        if (before_config_node == []):
+        for node in before_root:
+            before_config_node = None
+            for attr in node:
+                if (node.tag == "bounds"):
+                    if (node.text == bounds):
+                        before_config_node = node
+                        break
+            if (before_config_node):
+                break
+
+        for node in after_root:
+            after_config_node = None
+            for attr in node:
+                if (node.tag == "bounds"):
+                    if (node.text == bounds):
+                        after_config_node = node
+                        break
+            if (after_config_node):
+                break
+
+        # before_config_node = before_root.findall(f".//*[@bounds='{bounds}']")
+        # after_config_node = after_root.findall(f".//*[@bounds='{bounds}']")
+
+        if (not before_config_node):
             print("[ERR]: Cannot find config in before state")
             return True
-        elif (before_config_node != [] and after_config_node == []):
+        elif (before_config_node and not after_config_node):
             # [TODO-confiot-11.29]: 可能跳转到别的activity中了，一般是表示这个config是成功进行的，有没有别的情况？
             return True
-        elif (before_config_node != [] and after_config_node != [] and len(before_config_node) == 1 and
-              len(after_config_node) == 1):
-            before_node = before_config_node[0]
-            after_node = after_config_node[0]
+        elif (before_config_node and after_config_node):
+            # before_node = before_config_node[0]
+            # after_node = after_config_node[0]
 
             is_disabled = True
-            if (before_node.attrib["checkable"]):
-                if (before_node.attrib["checked"] != after_node.attrib["checked"]):
+
+            # checkable
+            if (before_config_node[0].text == "True"):
+                # checked
+                if (before_config_node[9].text != after_config_node[9].text):
                     is_disabled = False
 
             ret = not is_disabled
@@ -222,9 +245,10 @@ class UIComparator:
 
 
 if __name__ == "__main__":
-    comparator = UIComparator("host_august_Edit_house_owner_not_check", "host_august_Edit_house_owner_check")
+    comparator = UIComparator("33_Rename_the_body_fat_scale_to_its_original_name_with_the_name_guest",
+                              "45_1_Confirm_deletion_of_all_guest_users_data_from_the_body_fat_scale_with_the_user_name_guest")
 
-    state_str = "51b1b582e9a5351503e9f7a195ce1f9e4674ccdf38cb61c00d4b6eac163a9a2c"
+    state_str = "7f98c90078956f2da5a667489fb2432ba0b82045bb0254f9649e8090b6190b54"
 
     UI_old = comparator.old_hierarchy_path + f"/{state_str}.xml"
     UI_new = comparator.new_hierarchy_path + f"/{state_str}.xml"
@@ -234,10 +258,17 @@ if __name__ == "__main__":
     UI_add = comparator.get_UI_add(compare_output_path)
     UI_delete = comparator.get_UI_delete(compare_output_path)
 
-    # print(UI_add, UI_delete)
+    change_nodes_count = 0
+    for n in UI_add:
+        if ("<Node>" in n["element"]):
+            change_nodes_count += 1
+    for n in UI_delete:
+        if ("<Node>" in n["element"]):
+            change_nodes_count += 1
+    print(change_nodes_count)
 
-    for add_node in UI_add:
-        text = re.findall("text=\"(.*?)\"", add_node["element"])
-        content = re.findall("content-desc=\"(.*?)\"", add_node["element"])
+    # for add_node in UI_add:
+    #     text = re.findall("text=\"(.*?)\"", add_node["element"])
+    #     content = re.findall("content-desc=\"(.*?)\"", add_node["element"])
 
-        print(text, content)
+    #     print(text, content)

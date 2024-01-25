@@ -901,7 +901,7 @@ class DeviceState(object):
             content_description = self.__safe_dict_get(view, 'content_description', default='')
             view_text = self.__safe_dict_get(view, 'text', default='')
             view_class = self.__safe_dict_get(view, 'class').split('.')[-1]
-            # 使state包含checkbox
+            # syncxxx: 使state包含checkbox
             if not content_description and not view_text and not scrollable and not checkable:  # actionable?
                 continue
 
