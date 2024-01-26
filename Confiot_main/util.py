@@ -216,7 +216,7 @@ def parse_config_resource_mapping(text):
 
     for match in matches:
         try:
-            config_id = int(match[0].replace('<', '').replace('>', ''))
+            config_id = int(match[0].replace('<', '').replace('>', '').split(',')[0])
             config_path = eval(match[1])  # 使用 eval 将字符串转为列表
             task = match[2].split(">,")
             related_resources = match[3].split(',')
