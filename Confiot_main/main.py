@@ -143,7 +143,7 @@ def GuestAction(hosttasks, task_point='', replay_point='', walker_point=''):
 
 
 if __name__ == "__main__":
-    os.environ["https_proxy"] = "http://192.168.72.1:1083"
+    # os.environ["https_proxy"] = "http://192.168.72.1:1083"jie ti
 
     # s = settings("14131FDF600073", "/root/documents/Output/Huawei_AI_Life/Huawei.apk",
     #              "/root/documents/Output/Huawei_AI_Life/host/result")

@@ -535,8 +535,6 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
             if not self.utg.is_event_explored(event=input_event, state=current_state):
                 self.logger.info("Trying an unexplored event.")
                 self.__event_trace += EVENT_FLAG_EXPLORE
-<<<<<<< HEAD:droidbot/input_policy.py
-=======
                 # syncxxx: 过滤同一位置的按钮
                 import sys,os
                 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -568,7 +566,6 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
                     else:
                         settings.parent_map[parent] = 1
 
->>>>>>> 02aba5530efe84752664c2dcbd36e26c632da15d:droidbot_origin/droidbot/input_policy.py
                 return input_event
 
         target_state = self.__get_nav_target(current_state)

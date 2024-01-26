@@ -45,6 +45,7 @@ def test_goto_state():
             confiot.device_stop_app()
             break
         confiot.device_to_state(HOST_CONFIG_ANALYZED, target_str)
+        confiot.parse_all_views(confiot.device.get_current_state())
 
 
 def test_stop_app():

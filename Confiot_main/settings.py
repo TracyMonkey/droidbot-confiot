@@ -1,10 +1,13 @@
 class settings:
-    device_serial = "192.168.31.121:5555"
+    device_serial = "17291JECB10652"
 
     # app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
     # droid_output = "/root/documents/droidbot-new/a2dp/"
-    app_path = "/root/documents/Output/mihome/mihome-smartscale/mihome.apk"
-    droid_output = "/root/documents/Output/mihome/mihome-smartscale/guest/result"  #"/root/documents/Output/mihome/mihome-smartscale-guest/result"
+    # app_path = "/root/documents/Output/mihome/mihome.apk"
+    # droid_output = "/root/documents/Output/August/August_host/result"  #"/root/documents/Output/mihome/mihome-smartscale-guest/result"
+
+    app_path = "/Users/tracy/Documents/github/automation/apps/com.xiaomi.smarthome"
+    droid_output = "/Users/tracy/Documents/github/automation/output/mihome_host_camera_log_2"  #"/root/documents/Output/mihome/mihome-smartscale-guest/result"
 
     Confiot_output = f"{droid_output}/Confiot"
     UI_output = Confiot_output + "/UI/"
@@ -36,6 +39,7 @@ class settings:
     # precise_backs = ([[360, 684], [468, 810]],)
 
     # 米家
+    # backs = ()
     backs = ([[30, 84], [93, 147]], [[243, 89], [804, 142]], [[813, 111], [837, 125]])
     precise_backs = ()
 
