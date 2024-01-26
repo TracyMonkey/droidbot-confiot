@@ -183,8 +183,9 @@ if __name__ == "__main__":
         HostActor = HostInitialization()
         HostAction(HostActor.FilteredConfigResourceMapper, task_point)
     elif (options.guest):
-        HostActor = HostInitialization(path=options.droid_output + "/../../host/result/Confiot")
-        GuestAction(HostActor.FilteredConfigResourceMapper,
-                    task_point=task_point,
-                    replay_point=replay_point,
-                    walker_point=walker_point)
+        GuestInitialization()
+        # HostActor = HostInitialization(path=options.droid_output + "/../../host/result/Confiot")
+        # GuestAction(HostActor.FilteredConfigResourceMapper,
+        #             task_point=task_point,
+        #             replay_point=replay_point,
+        #             walker_point=walker_point)
