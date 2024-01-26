@@ -407,27 +407,41 @@ class Confiot:
                 except Exception as e:
                     print(f"[ERR]: Failed to parse the state file `{j}`\n" + str(e))
 
+    def get_config_cap(self, config):
+        cap = '['
+
+        if (config["checkable"]):
+            cap += "checkable=true, "
+        if (config["clickable"]):
+            cap += "clickable=true, "
+        if (config["editable"]):
+            cap += "editable=true, "
+
+        cap += ']'
+        return cap
+
     # 获取与config_id配置相关的文本描述（child/brother node）
     def get_related_descrition(self, state, config_id, view_str):
         config_description = ""
+        current_config = None
 
         if (state not in self.state_contents):
-            return -1
+            return current_config, config_description
         if (config_id >= len(self.state_contents[state])):
-            return -1
+            return current_config, config_description
 
-        current_config = None
         for c in self.state_contents[state]:
             if (c["view_str"] == view_str):
                 current_config = c
                 break
 
         if (not current_config):
-            return config_description
+            return current_config, config_description
         child_configs = current_config['children']
 
         if ("content_description" in current_config and current_config["content_description"] and
                 current_config["content_description"] != ''):
+
             config_description = config_description + f"{current_config['content_description']}"
         if ("text" in current_config and current_config["text"] and current_config["text"] != ''):
             config_description = config_description + f";{current_config['text']}"
@@ -441,14 +455,14 @@ class Confiot:
                     config_description = config_description + f"{pops_text['content_description']}"
                 if ("text" in pops_text and pops_text["text"] and pops_text["text"] != ''):
                     config_description = config_description + f";{pops_text['text']}"
-            return config_description
+            return current_config, config_description
 
         for ch in child_configs:
-            desc = self.get_related_descrition(state, ch, self.state_contents[state][ch]["view_str"])
+            chnode, desc = self.get_related_descrition(state, ch, self.state_contents[state][ch]["view_str"])
             if (desc != -1 and desc != ''):
                 config_description = config_description + desc
 
-        return config_description
+        return current_config, config_description
 
     # 返回所有config paths
     def parse_UITree(self):
@@ -489,7 +503,10 @@ class Confiot:
                         config_id = str(e['view']['temp_id'])
                         parent = str(e['view']['parent'])
                         view_str = e['view']["view_str"]
-                        config_description = self.get_related_descrition(src_state, int(config_id), view_str)
+                        config_node, config_description = self.get_related_descrition(src_state, int(config_id), view_str)
+                        if (config_node):
+                            cap = self.get_config_cap(config_node)
+                            config_description = cap + config_description
 
                         if (src_state not in config_nodes):
                             config_nodes[src_state] = []
