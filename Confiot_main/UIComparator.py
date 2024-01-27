@@ -106,9 +106,13 @@ class UIComparator:
         old_fp = None
         new_fp = None
         with open(old_file, 'r', encoding='UTF-8') as f:
-            old_fp = self.format_xml(f.read()).split('\n')
+            old_fp = self.format_xml(f.read()).replace('<text>None</text>',
+                                                       '').replace('<content_description>None</content_description>',
+                                                                   '').split('\n')
         with open(new_file, 'r', encoding='UTF-8') as f:
-            new_fp = self.format_xml(f.read()).split('\n')
+            new_fp = self.format_xml(f.read()).replace('<text>None</text>',
+                                                       '').replace('<content_description>None</content_description>',
+                                                                   '').split('\n')
         if old_fp is None or new_fp is None:
             print("[ERR]: cannot open file: " + old_file + " or " + new_file)
             return

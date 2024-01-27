@@ -30,7 +30,7 @@ class PolicyGenerator:
         hierachy_compare_result = comparator.compare_output_path + f"{state_str}.html"
 
         if (not os.path.exists(UI_old) or not os.path.exists(UI_new)):
-            return potential_policies
+            return {}
 
         comparator.compare_xml_files(UI_old, UI_new, hierachy_compare_result)
 
@@ -49,7 +49,7 @@ class PolicyGenerator:
 
         # 未进入同一个state
         if (change_nodes_count > 10):
-            return potential_policies
+            return {}
 
         for node in UI_add + UI_delete:
             text = re.findall("<text>(.*?)</text>", node["element"])
@@ -76,14 +76,21 @@ class PolicyGenerator:
 
                     if (text != '' and text in cr["Path"][-1].replace("\n", '').replace(' ', '').replace('\t', '')):
                         for r in cr["Resources"]:
-                            add_related_resources.add(r)
+                            if (node in UI_add):
+                                add_related_resources.add(r)
+                            else:
+                                remove_related_resources.add(r)
 
                     if (content != '' and content in cr["Path"][-1].replace("\n", '').replace(' ', '').replace('\t', '')):
                         for r in cr["Resources"]:
-                            add_related_resources.add(r)
+                            if (node in UI_add):
+                                add_related_resources.add(r)
+                            else:
+                                remove_related_resources.add(r)
 
         print(add_related_resources)
 
+        return {"Add": list(add_related_resources), "Delete": list(remove_related_resources)}
         # 如果相关的host的配置会导致资源增多或减少，但是客人没有看到改变，则生成一条客人无法看见的policy
         if (resource_changed and len(add_related_resources) == 0):
             pass

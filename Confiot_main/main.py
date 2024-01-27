@@ -136,6 +136,7 @@ def GuestAction(hosttasks, task_point='', replay_point='', walker_point=''):
                 cleaned_sentence = re.sub(r'[^a-zA-Z0-9 ]', '', t)
                 task_name = '_'.join(cleaned_sentence.split())
                 host_analyzing_config = str(task["Id"]) + "_" + task_name
+                host_analyzing_config = host_analyzing_config[:50]
 
                 # 主人进行task t
                 # HostRunTask(host, t)
@@ -172,10 +173,11 @@ def PolicyGeneration(HostActor: ConfiotHost, GuestActor: ConfiotGuest, target_st
                 after_config = host_analyzing_config
                 resource_changes = policy_generator.Policy_generate_1(before_config, after_config, state_str,
                                                                       GuestActor.ConfigResourceMapper)
-                for r in resource_changes:
-                    UIHierarchyChanges[state_str].append(resource_changes)
 
-                s = json.dumps(UIHierarchyChanges[state_str])
+                resource_changes["host_analyzing_config"] = f"{before_config}_to_{after_config}"
+                UIHierarchyChanges[state_str].append(resource_changes)
+
+                s = json.dumps(resource_changes)
                 with open(settings.Static_comparation_output + f"/{before_config}_to_{after_config}/{state_str}.txt", 'w') as f:
                     f.write(s)
                 before_config = after_config
