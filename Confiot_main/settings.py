@@ -34,12 +34,12 @@ class settings:
     # precise_backs: 精准匹配某些views
 
     # Huawei
-    # backs = ([[27, 63], [135, 171]], [[37, 164], [106, 233]])
-    # precise_backs = ([[360, 684], [468, 810]],)
+    backs = ([[27, 63], [135, 171]], [[37, 164], [106, 233]])
+    precise_backs = ([[360, 684], [468, 810]],)
 
     # 米家
-    backs = ([[30, 84], [93, 147]], [[243, 89], [804, 142]], [[813, 111], [837, 125]])
-    precise_backs = ()
+    # backs = ([[30, 84], [93, 147]], [[243, 89], [804, 142]], [[813, 111], [837, 125]])
+    # precise_backs = ()
 
     def __init__(self, device, app_path, droid_output) -> None:
         settings.device_serial = device
