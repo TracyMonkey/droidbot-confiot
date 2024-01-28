@@ -9,6 +9,8 @@ class settings:
     Confiot_output = f"{droid_output}/Confiot"
     UI_output = Confiot_output + "/UI/"
     Static_comparation_output = Confiot_output + "/Comparation/"
+    UIHierarchy_comparation_output = Static_comparation_output + "/UIHierarchy/"
+    Feasibility_comparation_output = Static_comparation_output + "/Feasibility/"
 
     ##### Screen Capture resolution for GPT ######
     resol_x = 230

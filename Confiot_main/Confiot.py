@@ -62,6 +62,15 @@ class Confiot:
         if (not os.path.exists(settings.Confiot_output)):
             os.makedirs(settings.Confiot_output)
 
+        if (not os.path.exists(settings.Static_comparation_output)):
+            os.makedirs(settings.Static_comparation_output)
+
+        if (not os.path.exists(settings.UIHierarchy_comparation_output)):
+            os.makedirs(settings.UIHierarchy_comparation_output)
+
+        if (not os.path.exists(settings.Feasibility_comparation_output)):
+            os.makedirs(settings.Feasibility_comparation_output)
+
         self.parse_event()
         self.parse_utg()
         self.parse_state_json()

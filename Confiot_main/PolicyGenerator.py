@@ -27,9 +27,10 @@ class PolicyGenerator:
 
         UI_old = comparator.old_hierarchy_path + f"/{state_str}.xml"
         UI_new = comparator.new_hierarchy_path + f"/{state_str}.xml"
-        hierachy_compare_result = comparator.compare_output_path + f"{state_str}.html"
+        hierachy_compare_result = comparator.compare_output_path + f"/{state_str}.html"
 
         if (not os.path.exists(UI_old) or not os.path.exists(UI_new)):
+            print("[ERR]: Do not found files:", UI_old, UI_new)
             return {}
 
         comparator.compare_xml_files(UI_old, UI_new, hierachy_compare_result)
@@ -88,9 +89,16 @@ class PolicyGenerator:
                             else:
                                 remove_related_resources.add(r)
 
-        print(add_related_resources)
+        # print(add_related_resources)
 
         return {"Add": list(add_related_resources), "Delete": list(remove_related_resources)}
         # 如果相关的host的配置会导致资源增多或减少，但是客人没有看到改变，则生成一条客人无法看见的policy
         if (resource_changed and len(add_related_resources) == 0):
             pass
+
+    # def Policy_generate_2(self,
+    #                       host_analyzing_config_before,
+    #                       host_analyzing_config_after,
+    #                       state_str,
+    #                       ConfigResourceMapper,
+    #                       resource_changed=False):

@@ -274,6 +274,14 @@ def get_ConfigResourceMapper_from_file(file):
     return ConfigResourceMapper
 
 
+def progress(percent, width=50):
+    if percent >= 100:
+        percent = 100
+
+    show_str = ('[%%-%ds]' % width) % (int(width * percent / 100) * "#")
+    print('\r%s %d%%' % (show_str, percent), end='')
+
+
 if __name__ == "__main__":
     # 创建有向图
     graph = DirectedGraph()
