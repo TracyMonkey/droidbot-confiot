@@ -300,7 +300,7 @@ if __name__ == "__main__":
 
     if (options.host):
         HostActor = HostInitialization()
-        # HostAction(HostActor.FilteredConfigResourceMapper, task_point)
+        HostAction(HostActor.FilteredConfigResourceMapper, task_point)
     elif (options.guest and not options.policy):
         GuestActor = GuestInitialization()
         HostConfiotPath = options.droid_output + "/../../host/result/Confiot" if (

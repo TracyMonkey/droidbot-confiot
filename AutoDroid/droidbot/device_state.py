@@ -11,13 +11,13 @@ from treelib import Tree
 import networkx as nx
 import numpy as np
 
+
 class DeviceState(object):
     """
     the state of the current device
     """
 
-    def __init__(self, device, views, foreground_activity, activity_stack, background_services,
-                 tag=None, screenshot_path=None):
+    def __init__(self, device, views, foreground_activity, activity_stack, background_services, tag=None, screenshot_path=None):
         self.device = device
         self.foreground_activity = foreground_activity
         self.activity_stack = activity_stack if isinstance(activity_stack, list) else []
@@ -44,22 +44,20 @@ class DeviceState(object):
         self.height = device.get_height(refresh=False)
         self._save_important_view_ids()
 
-
     @property
     def activity_short_name(self):
         return self.foreground_activity.split('.')[-1]
 
-
     def _save_important_view_ids(self):
         _, _, _, important_view_ids = self.get_described_actions(remove_time_and_ip=False)
-        ids_path = self.device.output_dir +'/states_view_ids'
+        ids_path = self.device.output_dir + '/states_view_ids'
         if not os.path.exists(ids_path):
             os.mkdir(ids_path)
         # if not isinstance(current_state, str):
         #     current_state_str = current_state.state_str
         # else:
         #     current_state_str = current_state
-        important_view_id_path = self.device.output_dir +'/states_view_ids/'+ self.state_str + '.txt'
+        important_view_id_path = self.device.output_dir + '/states_view_ids/' + self.state_str + '.txt'
         f = open(important_view_id_path, 'w')
         f.write(str(important_view_ids))
         f.close()
@@ -70,15 +68,17 @@ class DeviceState(object):
         return hashed_string
 
     def to_dict(self):
-        state = {'tag': self.tag,
-                 'state_str': self.state_str,
-                 'state_str_content_free': self.structure_str,
-                 'foreground_activity': self.foreground_activity,
-                 'activity_stack': self.activity_stack,
-                 'background_services': self.background_services,
-                 'width': self.width,
-                 'height': self.height,
-                 'views': self.views}
+        state = {
+            'tag': self.tag,
+            'state_str': self.state_str,
+            'state_str_content_free': self.structure_str,
+            'foreground_activity': self.foreground_activity,
+            'activity_stack': self.activity_stack,
+            'background_services': self.background_services,
+            'width': self.width,
+            'height': self.height,
+            'views': self.views
+        }
         return state
 
     def to_json(self):
@@ -100,7 +100,7 @@ class DeviceState(object):
         return views
 
     def __assemble_view_tree(self, root_view, views):
-        if not len(self.view_tree): # bootstrap
+        if not len(self.view_tree):  # bootstrap
             self.view_tree = copy.deepcopy(views[0])
             self.__assemble_view_tree(self.view_tree, views)
         else:
@@ -140,11 +140,11 @@ class DeviceState(object):
             import json
             from xmlrpc.client import ServerProxy
             proxy = ServerProxy("http://%s/" % self.device.humanoid)
-            return proxy.render_view_tree(json.dumps({
-                "view_tree": self.view_tree,
-                "screen_res": [self.device.display_info["width"],
-                               self.device.display_info["height"]]
-            }))
+            return proxy.render_view_tree(
+                json.dumps({
+                    "view_tree": self.view_tree,
+                    "screen_res": [self.device.display_info["width"], self.device.display_info["height"]]
+                }))
         else:
             view_signatures = set()
             for view in self.views:
@@ -158,11 +158,11 @@ class DeviceState(object):
             import json
             from xmlrpc.client import ServerProxy
             proxy = ServerProxy("http://%s/" % self.device.humanoid)
-            state_str = proxy.render_content_free_view_tree(json.dumps({
-                "view_tree": self.view_tree,
-                "screen_res": [self.device.display_info["width"],
-                               self.device.display_info["height"]]
-            }))
+            state_str = proxy.render_content_free_view_tree(
+                json.dumps({
+                    "view_tree": self.view_tree,
+                    "screen_res": [self.device.display_info["width"], self.device.display_info["height"]]
+                }))
         else:
             view_signatures = set()
             for view in self.views:
@@ -178,8 +178,9 @@ class DeviceState(object):
         get a text for searching the state
         :return: str
         """
-        words = [",".join(self.__get_property_from_all_views("resource_id")),
-                 ",".join(self.__get_property_from_all_views("text"))]
+        words = [
+            ",".join(self.__get_property_from_all_views("resource_id")), ",".join(self.__get_property_from_all_views("text"))
+        ]
         return "\n".join(words)
 
     def __get_property_from_all_views(self, property_name):
@@ -241,10 +242,9 @@ class DeviceState(object):
             view_bound = view_dict['bounds']
             original_img = Image.open(self.screenshot_path)
             # view bound should be in original image bound
-            view_img = original_img.crop((min(original_img.width - 1, max(0, view_bound[0][0])),
-                                          min(original_img.height - 1, max(0, view_bound[0][1])),
-                                          min(original_img.width, max(0, view_bound[1][0])),
-                                          min(original_img.height, max(0, view_bound[1][1]))))
+            view_img = original_img.crop(
+                (min(original_img.width - 1, max(0, view_bound[0][0])), min(original_img.height - 1, max(0, view_bound[0][1])),
+                 min(original_img.width, max(0, view_bound[1][0])), min(original_img.height, max(0, view_bound[1][1]))))
             view_img.convert("RGB").save(view_file_path)
         except Exception as e:
             self.device.logger.warning(e)
@@ -345,9 +345,7 @@ class DeviceState(object):
                 relative_x, relative_y = child_x - root_x, child_y - root_y
                 children["(%d,%d)" % (relative_x, relative_y)] = self.__get_view_structure(child_view)
 
-        view_structure = {
-            "%s(%d*%d)" % (class_name, width, height): children
-        }
+        view_structure = {"%s(%d*%d)" % (class_name, width, height): children}
         view_dict['view_structure'] = view_structure
         return view_structure
 
@@ -505,7 +503,6 @@ class DeviceState(object):
                 return value
         return default
 
-
     def _merge_text(self, view_text, content_description):
         text = ''
         if view_text:
@@ -578,7 +575,9 @@ class DeviceState(object):
                 available_actions.append(SetTextEvent(view=view, text='HelloWorld'))
             elif (clickable or checkable or long_clickable):
 
-                view_desc = btn_frame.replace('@', str(len(view_descs))).replace('#', view_text).replace('$', str(checked or selected))
+                view_desc = btn_frame.replace('@',
+                                              str(len(view_descs))).replace('#',
+                                                                            view_text).replace('$', str(checked or selected))
                 # import pdb;pdb.set_trace()
                 if content_description:
                     view_desc = view_desc.replace('&', content_description)
@@ -588,9 +587,9 @@ class DeviceState(object):
 
                 available_actions.append(TouchEvent(view=view))
             elif scrollable:
-                view_descs.append(scroll_up_frame.replace('@', str(len(view_descs))))#.replace('&', view_class).replace('#', text))
+                view_descs.append(scroll_up_frame.replace('@', str(len(view_descs))))  #.replace('&', view_class).replace('#', text))
                 available_actions.append(ScrollEvent(view=view, direction='UP'))
-                view_descs.append(scroll_down_frame.replace('@', str(len(view_descs))))#.replace('&', view_class).replace('#', text))
+                view_descs.append(scroll_down_frame.replace('@', str(len(view_descs))))  #.replace('&', view_class).replace('#', text))
                 available_actions.append(ScrollEvent(view=view, direction='DOWN'))
             else:
                 view_desc = text_frame.replace('@', str(len(view_descs))).replace('#', view_text)
@@ -605,7 +604,7 @@ class DeviceState(object):
         view_descs.append(f"<button id={len(view_descs)} class='ImageButton'>go back</button>")
         available_actions.append(KeyEvent(name='BACK'))
         # state_desc = 'The current state has the following UI elements: \n' #views and corresponding actions, with action id in parentheses:\n '
-        state_desc = prefix #'Given a screen, an instruction, predict the id of the UI element to perform the insturction. The screen has the following UI elements: \n'
+        state_desc = prefix  #'Given a screen, an instruction, predict the id of the UI element to perform the insturction. The screen has the following UI elements: \n'
         # state_desc = 'You can perform actions on a contacts app, the current state of which has the following UI views and corresponding actions, with action id in parentheses:\n'
         state_desc += '\n '.join(view_descs)
 
@@ -773,9 +772,13 @@ class DeviceState(object):
     #                     self.views[view_id]['checkable'] = False
     #                     break
 
-
-    def get_described_actions(self, prefix='', remove_time_and_ip=False,
-                                merge_buttons =True, add_edit_box = True, add_check_box = True, add_pure_text = True):
+    def get_described_actions(self,
+                              prefix='',
+                              remove_time_and_ip=False,
+                              merge_buttons=False,
+                              add_edit_box=True,
+                              add_check_box=True,
+                              add_pure_text=True):
         """
         Get a text description of current state
         """
@@ -818,8 +821,18 @@ class DeviceState(object):
             view_text = self.__safe_dict_get(view, 'text', default='')
             view_class = self.__safe_dict_get(view, 'class').split('.')[-1]
 
+            resource_id = self.__safe_dict_get(view, 'resource_id', default='')
+            # print(resource_id)
+            if ("/" in resource_id):
+                resource_id = resource_id.split('/')[1]
+            else:
+                resource_id = ''
+
             # if not content_description and not view_text and not scrollable:  # actionable?
             #     continue
+
+            if ((checkable or clickable) and (not content_description and not view_text)):
+                view_text = resource_id
 
             # syncxxx
             if not editable:
@@ -831,7 +844,7 @@ class DeviceState(object):
 
             # syncxxx: 删除text为空的
             if not editable:
-                tt = view_text.strip()
+                tt = (view_text + content_description).strip()
                 tt = tt.replace(' ', '')
                 tt = tt.replace('\t', '')
                 if tt == '':
@@ -849,11 +862,11 @@ class DeviceState(object):
                 # view_desc = view_desc.replace('*&*', str(view_id))
                 view_descs.append(view_desc)
                 available_actions.append(SetTextEvent(view=view, text='HelloWorld'))
-                important_view_ids.append([content_description + view_text,view_id])
+                important_view_ids.append([content_description + view_text, view_id])
 
             elif checkable:
-                view_desc = checkbox_frame.replace('@', str(len(view_descs))).replace('#', view_text).replace('$',
-                                                                                                              str(checked or selected))
+                view_desc = checkbox_frame.replace('@', str(len(view_descs))).replace('#', view_text).replace(
+                    '$', str(checked or selected))
                 if content_description:
                     view_desc = view_desc.replace('&', content_description)
                 else:
@@ -867,6 +880,7 @@ class DeviceState(object):
                 #     {'id': len(view_descs) - 1, 'text': view_text, 'content_description': content_description,
                 #      'checked': checked or selected, 'type': 'checkbox'})
             elif clickable:  # or long_clickable
+
                 if merge_buttons:
                     # below is to merge buttons, led to bugs
                     clickable_ancestor_id = self._get_ancestor_id(view=view, key='clickable')
@@ -879,9 +893,8 @@ class DeviceState(object):
                     if view_id not in clickable_children_ids:
                         clickable_children_ids.append(view_id)
 
-                    view_text, content_description, important_view_ids = self._merge_textv2(clickable_children_ids,
-                                                                                            remove_time_and_ip,
-                                                                                            important_view_ids)
+                    view_text, content_description, important_view_ids = self._merge_textv2(
+                        clickable_children_ids, remove_time_and_ip, important_view_ids)
                     checked = self._get_children_checked(clickable_children_ids)
                     # end of merging buttons
                 if not view_text and not content_description:
@@ -905,7 +918,6 @@ class DeviceState(object):
                 #     {'id': len(view_descs) - 1, 'text': view_text, 'content_description': content_description,
                 #      'type': 'button'})
 
-
             elif scrollable:
                 # print(view_id, 'continued')
                 continue
@@ -927,13 +939,13 @@ class DeviceState(object):
                     view_desc = view_desc.replace(" text='&'", "")
                 view_descs.append(view_desc)
 
-                important_view_ids.append([content_description + view_text,view_id])
+                important_view_ids.append([content_description + view_text, view_id])
 
                 available_actions.append(TouchEvent(view=view))
         view_descs.append(f"<button id={len(view_descs)}>go back</button>")
         available_actions.append(KeyEvent(name='BACK'))
         # state_desc = 'The current state has the following UI elements: \n' #views and corresponding actions, with action id in parentheses:\n '
-        state_desc = prefix #'Given a screen, an instruction, predict the id of the UI element to perform the insturction. The screen has the following UI elements: \n'
+        state_desc = prefix  #'Given a screen, an instruction, predict the id of the UI element to perform the insturction. The screen has the following UI elements: \n'
         # state_desc = 'You can perform actions on a contacts app, the current state of which has the following UI views and corresponding actions, with action id in parentheses:\n'
         state_desc += '\n'.join(view_descs)
 
@@ -958,8 +970,8 @@ class DeviceState(object):
         # btn_frame = "<button id=@ checked=$ class='&' label='~'>#</button>"
         # input_frame = "<input id=@ class='&' >#</input>"
         if editable:
-                # view_status += 'editable '
-            view_desc = f"<input class='&'>#</input>"#.replace('&', view_class)#.replace('#', text)
+            # view_status += 'editable '
+            view_desc = f"<input class='&'>#</input>"  #.replace('&', view_class)#.replace('#', text)
             if view_text:
                 view_desc = view_desc.replace('#', view_text)
             else:
@@ -985,9 +997,9 @@ class DeviceState(object):
 
             view_text, content_description, important_view_ids = self._merge_textv2(clickable_children_ids, False, [])
             checked = self._get_children_checked(clickable_children_ids)
-                # print(view_id, clickable_ancestor_id, clickable_children_ids, view_text, content_description)
+            # print(view_id, clickable_ancestor_id, clickable_children_ids, view_text, content_description)
 
-                # view_desc = btn_frame.replace('@', str(len(view_descs))).replace('#', view_text).replace('$', str(checked or selected))
+            # view_desc = btn_frame.replace('@', str(len(view_descs))).replace('#', view_text).replace('$', str(checked or selected))
 
             view_desc = f"<button checked=$ class='&'>#</button>".replace('$', str(checked or selected))
             if view_text:
@@ -1030,7 +1042,7 @@ class DeviceState(object):
             elif isinstance(action, SetTextEvent):
                 # action_name = f'enter "{action.text}" into'
                 # desc = view_desc + f'.settext{action.text}'
-                desc = '- TapOn: ' + view_desc  + ' InputText: ' + action.text
+                desc = '- TapOn: ' + view_desc + ' InputText: ' + action.text
             elif isinstance(action, ScrollEvent):
                 # action_name = f'scroll {action.direction.lower()}'
                 # desc = view_desc + f'.scroll{action.direction.lower()}'
@@ -1049,7 +1061,7 @@ class DeviceState(object):
             if isinstance(action, LongTouchEvent):
                 desc = '- LongTapOn: ' + view_desc
             elif isinstance(action, SetTextEvent):
-                desc = '- TapOn: ' + view_desc  + ' InputText: ' + action.text
+                desc = '- TapOn: ' + view_desc + ' InputText: ' + action.text
             elif isinstance(action, ScrollEvent):
                 desc = f'- Scroll{action.direction.lower()}: ' + view_desc
             else:
@@ -1103,7 +1115,6 @@ class DeviceState(object):
         #     string = ''
         return string
 
-
     def get_number_free_screen(self, prefix=''):
         """
         Get a text description of current state
@@ -1142,7 +1153,6 @@ class DeviceState(object):
             if not content_description and not view_text and not scrollable:  # actionable?
                 continue
 
-
             content_description = self._remove_date_and_date(content_description)
             view_text = self._remove_date_and_date(view_text)
             # text = self._merge_text(view_text, content_description)
@@ -1158,7 +1168,9 @@ class DeviceState(object):
                 available_actions.append(SetTextEvent(view=view, text='HelloWorld'))
             elif (clickable or checkable or long_clickable):
 
-                view_desc = btn_frame.replace('@', str(len(view_descs))).replace('#', view_text).replace('$', str(checked or selected))
+                view_desc = btn_frame.replace('@',
+                                              str(len(view_descs))).replace('#',
+                                                                            view_text).replace('$', str(checked or selected))
                 # import pdb;pdb.set_trace()
                 if content_description:
                     view_desc = view_desc.replace('&', content_description)
@@ -1168,9 +1180,9 @@ class DeviceState(object):
 
                 available_actions.append(TouchEvent(view=view))
             elif scrollable:
-                view_descs.append(scroll_up_frame.replace('@', str(len(view_descs))))#.replace('&', view_class).replace('#', text))
+                view_descs.append(scroll_up_frame.replace('@', str(len(view_descs))))  #.replace('&', view_class).replace('#', text))
                 available_actions.append(ScrollEvent(view=view, direction='UP'))
-                view_descs.append(scroll_down_frame.replace('@', str(len(view_descs))))#.replace('&', view_class).replace('#', text))
+                view_descs.append(scroll_down_frame.replace('@', str(len(view_descs))))  #.replace('&', view_class).replace('#', text))
                 available_actions.append(ScrollEvent(view=view, direction='DOWN'))
             else:
                 view_desc = text_frame.replace('@', str(len(view_descs))).replace('#', view_text)
@@ -1185,13 +1197,13 @@ class DeviceState(object):
         view_descs.append(f"<button id={len(view_descs)} class='ImageButton'>go back</button>")
         available_actions.append(KeyEvent(name='BACK'))
         # state_desc = 'The current state has the following UI elements: \n' #views and corresponding actions, with action id in parentheses:\n '
-        state_desc = prefix #'Given a screen, an instruction, predict the id of the UI element to perform the insturction. The screen has the following UI elements: \n'
+        state_desc = prefix  #'Given a screen, an instruction, predict the id of the UI element to perform the insturction. The screen has the following UI elements: \n'
         # state_desc = 'You can perform actions on a contacts app, the current state of which has the following UI views and corresponding actions, with action id in parentheses:\n'
         state_desc += '\n '.join(view_descs)
 
         views_without_id = self._remove_view_ids(view_descs)
 
-        return state_desc#, available_actions, views_without_id
+        return state_desc  #, available_actions, views_without_id
 
     def get_scrollable_views(self):
         scrollable_views = []

@@ -188,6 +188,10 @@ def add_testdata_for_task(task):
         "height": "with the weight 150",
     }
 
+    log = ["records", "log"]
+
+    automation = ["automation"]
+
     result = task
     for key in username:
         if (key in task.lower()):
@@ -196,6 +200,14 @@ def add_testdata_for_task(task):
             else:
                 result = result + ", with the user name `guest`, age 18, gender `male`, weight `100`, height `150`"
             break
+
+    for i in log:
+        if (i in task.lower()):
+            result = result + ", and remove it."
+
+    for i in automation:
+        if (i in task.lower()):
+            result = result + ", with the name `TESTAutomation` and the task: Play music in 1 minute."
 
     for key in testdata:
         if (key in task.lower()):
