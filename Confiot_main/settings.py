@@ -49,3 +49,5 @@ class settings:
         settings.Confiot_output = settings.droid_output + "/Confiot/"
         settings.UI_output = settings.Confiot_output + "/UI/"
         settings.Static_comparation_output = settings.Confiot_output + "/Comparation/"
+        settings.UIHierarchy_comparation_output = settings.Static_comparation_output + "/UIHierarchy/"
+        settings.Feasibility_comparation_output = settings.Static_comparation_output + "/Feasibility/"
