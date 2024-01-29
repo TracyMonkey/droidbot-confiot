@@ -180,7 +180,7 @@ def test_mapping_uitree():
 
     os.environ["https_proxy"] = "http://192.168.72.1:1083"
     # 请求GPT
-    ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
+    #ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
     # 使用文件读取mapper测试
     # ConfigResourceMapper = get_ConfigResourceMapper_from_file(settings.Confiot_output + "/ConfigResourceMapping.txt")
 

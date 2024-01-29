@@ -408,7 +408,7 @@ class Confiot:
                     print(f"[ERR]: Failed to parse the state file `{j}`\n" + str(e))
 
     def get_config_cap(self, config):
-        cap = '['
+        cap = '{'
 
         if (config["checkable"]):
             cap += "checkable=true, "
@@ -417,7 +417,7 @@ class Confiot:
         if (config["editable"]):
             cap += "editable=true, "
 
-        cap += ']'
+        cap += '}'
         return cap
 
     # 获取与config_id配置相关的文本描述（child/brother node）

@@ -2,6 +2,7 @@ from optparse import OptionParser
 import os
 import sys
 import re
+import json
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) + "/"
 sys.path.append(BASE_DIR + "/../")
@@ -9,6 +10,7 @@ sys.path.append(BASE_DIR + "/../")
 from Confiot_main.Confiot import ConfiotGuest, ConfiotHost, Confiot
 from Confiot_main.settings import settings
 from Confiot_main.util import get_ConfigResourceMapper_from_file
+from Confiot_main.PolicyGenerator import PolicyGenerator
 
 
 def HostInitialization(path=''):
@@ -40,7 +42,6 @@ def HostInitialization(path=''):
 
 def GuestInitialization():
     confiot = ConfiotGuest()
-    confiot.device_connect()
 
     if (not os.path.exists(settings.Confiot_output + "/ConfigResourceMapping.txt")):
         confiot.ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
@@ -87,6 +88,7 @@ def HostRunTask(task, task_state):
 # point用于断点继续开始, replay_point:state_str, walker_point:view_2fb7d047fc22be5efccfd0fa9c96be7b.jpg121
 def GuestRunAnalysis(host_analyzing_config="", replay_point='', walker_point=''):
     actor = GuestInitialization()
+    actor.device_connect()
     if (walker_point != ''):
         actor.device_guest_config_walker(host_analyzing_config, walker_point)
     else:
@@ -101,7 +103,7 @@ def HostAction(hosttasks, task_point=''):
 
     for task in tasks:
         for t in task["Tasks"]:
-            if (str(task["Id"]) == task_point):
+            if (task_point == '' or str(task["Id"]) == task_point):
                 # 主人进行task t
                 HostRunTask(t, task["state"])
                 break
@@ -142,14 +144,65 @@ def GuestAction(hosttasks, task_point='', replay_point='', walker_point=''):
                 GuestRunAnalysis(host_analyzing_config, replay_point, walker_point)
 
 
+def PolicyGeneration(HostActor: ConfiotHost, GuestActor: ConfiotGuest, target_state=None):
+    policy_generator = PolicyGenerator()
+    host_tasks = ["000"]
+
+    for task in HostActor.FilteredConfigResourceMapper:
+        for t in task["Tasks"]:
+            cleaned_sentence = re.sub(r'[^a-zA-Z0-9 ]', '', t)
+            task_name = '_'.join(cleaned_sentence.split())
+            host_analyzing_config = str(task["Id"]) + "_" + task_name
+            host_analyzing_config = host_analyzing_config[:50]
+            host_tasks.append(host_analyzing_config)
+
+    UIHierarchyChanges = {}
+    for node in GuestActor.utg_graph.nodes:
+        state_str = node.name
+        UIHierarchyChanges[state_str] = []
+        before_config = None
+        after_config = None
+        if (target_state and state_str != target_state):
+            continue
+        for host_analyzing_config in host_tasks:
+            host_analyzing_config = host_analyzing_config[:50]
+            if (not before_config):
+                before_config = host_analyzing_config
+            else:
+                after_config = host_analyzing_config
+                resource_changes = policy_generator.Policy_generate_1(before_config, after_config, state_str,
+                                                                      GuestActor.ConfigResourceMapper)
+                for r in resource_changes:
+                    UIHierarchyChanges[state_str].append(resource_changes)
+
+                s = json.dumps(UIHierarchyChanges[state_str])
+                with open(settings.Static_comparation_output + f"/{before_config}_to_{after_config}/{state_str}.txt", 'w') as f:
+                    f.write(s)
+                before_config = after_config
+
+    UIHierarchyChanges_json = json.dumps(UIHierarchyChanges)
+    if (not os.path.exists(settings.Confiot_output + "/Result/")):
+        os.makedirs(settings.Confiot_output + "/Result/")
+    with open(settings.Confiot_output + "/Result/UIHierarchyChanges.txt", 'w') as f:
+        f.write(UIHierarchyChanges_json)
+
+
 if __name__ == "__main__":
-    # os.environ["https_proxy"] = "http://192.168.72.1:1083"jie ti
+
+    # test
+    # s = settings("192.168.31.121:5555", "/root/documents/Output/mihome/mihome-smartscale/mihome.apk",
+    #              "/root/documents/Output/mihome/mihome-smartscale/guest/result")
+    # GuestActor = GuestInitialization()
+    # HostActor = HostInitialization(path="/root/documents/Output/mihome/mihome-smartscale/guest/result" +
+    #                                "/../../host/result/Confiot")
+    # PolicyGeneration(HostActor, GuestActor, "86f225e1a61549e96027ff8248064e501f5571ec288e421cc6b3f10551fb9083")
 
     # s = settings("14131FDF600073", "/root/documents/Output/Huawei_AI_Life/Huawei.apk",
     #              "/root/documents/Output/Huawei_AI_Life/host/result")
     # # HostActor = HostInitialization()
     # HostAction(None, "2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
 
+    os.environ["https_proxy"] = "http://192.168.72.1:1083"
     parser = OptionParser()
     parser.add_option("-a", "--app-path", dest="app_path", help="The apk path of the target application")
     parser.add_option("-d", "--device", dest="device", help="The device serial")
@@ -158,6 +211,7 @@ if __name__ == "__main__":
     parser.add_option("-G", "--guest", dest="guest", action="store_true", default=False, help="Guest")
     parser.add_option("-b", "--director", dest="director", action="store_true", default=False, help="Director Mode")
     parser.add_option("-c", "--configuration", dest="config", help="Configuration File")
+    parser.add_option("-P", "--policygeneration", dest="policy", action="store_true", default=False, help="Policy generation")
     parser.add_option("--task-point", dest="task_point", help="Configuration File")
     parser.add_option("--replay-point", dest="replay_point", help="Configuration File")
     parser.add_option("--walker-point", dest="walker_point", help="Configuration File")
@@ -182,10 +236,18 @@ if __name__ == "__main__":
     if (options.host):
         HostActor = HostInitialization()
         HostAction(HostActor.FilteredConfigResourceMapper, task_point)
-    elif (options.guest):
-        GuestInitialization()
-        # HostActor = HostInitialization(path=options.droid_output + "/../../host/result/Confiot")
-        # GuestAction(HostActor.FilteredConfigResourceMapper,
-        #             task_point=task_point,
-        #             replay_point=replay_point,
-        #             walker_point=walker_point)
+    elif (options.guest and not options.policy):
+        GuestActor = GuestInitialization()
+        HostConfiotPath = options.droid_output + "/../../host/result/Confiot" if (
+            "guest" in options.droid_output) else options.droid_output + "/../../guest/result/Confiot"
+        # print(HostConfiotPath)
+        HostActor = HostInitialization(path=HostConfiotPath)
+        GuestAction(HostActor.FilteredConfigResourceMapper,
+                    task_point=task_point,
+                    replay_point=replay_point,
+                    walker_point=walker_point)
+    elif (options.guest and options.policy):
+        GuestActor = GuestInitialization()
+        HostConfiotPath = options.droid_output + "/../../host/result/Confiot" if "guest" in options.droid_output else options.droid_output + "/../../guest/result/Confiot"
+        HostActor = HostInitialization(path=HostConfiotPath)
+        PolicyGeneration(HostActor, GuestActor)
