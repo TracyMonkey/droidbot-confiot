@@ -1,0 +1,201 @@
+{
+  "views": {
+    "open_camera_button": {
+      "text": "Open",
+      "class": ".*TextView"
+    },
+    "camera_settings_button": {
+      "content_desc": "rnLabelBtnSetting",
+      "class": ".*Button"
+    },
+    "home_surveillance_settings_textView": {
+      "text": "Home surveillance settings",
+      "class": ".*TextView"
+    },
+    "surveillance_textView": {
+        "text": "Surveillance",
+        "class": ".*TextView"
+    },
+    "view_event_scope": {
+      "text": "Motion detected",
+      "class": ".*TextView"
+    },
+    "share_device_textView": {
+      "text": "Share device",
+      "class": ".*TextView"
+    },
+    "manage_device_sharing_textView": {
+      "text": "Manage device sharing",
+      "class": ".*TextView"
+    },
+    "delete_Guest_Test_textView": {
+      "text": "Delete",
+      "class": ".*TextView"
+    },
+    "back_button": {
+      "content_desc": "Back",
+      "class": ".*Button"
+    }
+  },
+  "states": {
+      "open_camera_main_state": {
+          "activity": ".*SmartHomeMainActivity",
+          "views": [
+              "open_camera_button"
+          ]
+      },
+      "camera_settings_state": {
+        "activity": ".*PluginRNActivityCamera",
+        "views": [
+            "home_surveillance_settings_textView", "back_button", "share_device_textView"
+        ]
+      },
+      "surveillance_state": {
+        "activity": ".*PluginRNActivityCamera",
+        "views": [
+            "view_event_scope", "back_button"
+        ]
+      },
+      "camera_state": {
+          "activity": ".*PluginRNActivityCamera",
+          "views": [
+              "camera_settings_button", "surveillance_textView"
+          ]
+      },
+      "share_device": {
+        "activity": ".*framework.plugin.rn.PluginRNActivityCamera",
+        "views": [
+            "share_device_textView"
+        ]
+      },
+      "manage_device_sharing": {
+          "activity": ".*family.ShareDeviceActivity",
+          "views": [
+              "manage_device_sharing_textView"
+          ]
+      },
+      "delete_Guest_Test": {
+        "activity": ".*miio.page.ShareDeviceDetail",
+        "views": [
+            "delete_Guest_Test_textView"
+        ]
+      }
+  },
+  "operations": {
+    "click_open_textView": [
+        {
+            "event_type": "touch",
+            "target_view": "open_camera_button"
+        }
+    ],
+    "click_surveillance_textView": [
+      {
+          "event_type": "touch",
+          "target_view": "surveillance_textView"
+      }
+    ],
+    "click_home_surveillance_settings_textView": [
+      {
+        "event_type": "touch",
+        "target_view": "home_surveillance_settings_textView"
+      }
+    ],
+    "click_camera_settings_button": [
+        {
+            "event_type": "touch",
+            "target_view": "camera_settings_button"
+        }
+    ],
+    "click_event_scope": [
+      {
+          "event_type": "touch",
+          "target_view": "view_event_scope"
+      }
+    ],
+    "click_share_device_textView": [
+      {
+          "event_type": "touch",
+          "target_view": "share_device_textView"
+      }
+    ],
+    "click_manage_device_sharing_textView": [
+      {
+          "event_type": "touch",
+          "target_view": "manage_device_sharing_textView"
+      }
+    ],
+    "click_delete_Guest_Test_textView": [
+      {
+          "event_type": "touch",
+          "target_view": "delete_Guest_Test_textView"
+      }
+    ],
+    "click_back_button": [
+      {
+          "event_type": "touch",
+          "target_view": "back_button"
+      }
+    ]
+  },
+  "main": {
+      "open_camera_main_state": [
+        {
+          "op_id": "click_open_textView",
+          "prob": 0.6
+        }
+      ],
+      "camera_state": [
+        {
+          "op_id": "click_camera_settings_button",
+          "prob": 0.1
+        },
+        {
+          "op_id": "click_surveillance_textView",
+          "prob": 0.1
+        }
+      ],
+      "camera_settings_state": [
+        {
+          "op_id": "click_back_button",
+          "prob": 0.3
+        },
+        {
+          "op_id": "click_home_surveillance_settings_textView",
+          "prob": 0.3
+        },
+        {
+          "op_id": "click_share_device_textView",
+          "prob": 0.3
+        }
+      ],
+      "surveillance_state": [
+        {
+          "op_id": "click_back_button",
+          "prob": 0.2
+        },
+        {
+          "op_id": "click_event_scope",
+          "prob": 0.5
+        }
+      ],
+      "share_device": [
+        {
+          "op_id": "click_share_device_textView",
+          "prob": 0.3
+        }
+      ],
+      "manage_device_sharing": [
+          {
+              "op_id": "click_manage_device_sharing_textView",
+              "prob": 0.5
+          }
+      ],
+      "delete_Guest_Test": [
+        {
+            "op_id": "click_delete_Guest_Test_textView",
+            "prob": 0.5
+        }
+      ]
+
+  }
+}

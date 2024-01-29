@@ -1,0 +1,82 @@
+{
+  "views": {
+      "notifications": {
+        "in_coordinates": [
+            [296,1157],[405,1266]
+          ],
+          "out_coordinates": [
+            [296,1157],[405,1266],[296,1157],[405,1266]
+          ],
+          "class": ".*ImageView"
+      },
+      "playback": {
+        "in_coordinates": [
+            [135,1157],[244,1266]
+          ],
+          "out_coordinates": [
+            [135,1157],[244,1266],[135,1157],[244,1266]
+          ],
+          "class": ".*ImageView"
+      },
+      "settings": {
+        "in_coordinates": [
+            [457,1157],[566,1266]
+          ],
+          "out_coordinates": [
+            [457,1157],[566,1266],[457,1157],[566,1266]
+          ],
+          "class": ".*ImageView"
+      },
+      "shop1": {
+        "resource_id": ".*discovery",
+        "class": ".*RadioButton"
+      },
+      "shop2": {
+        "resource_id": ".*services",
+        "class": ".*RadioButton"
+      },
+      "shop3": {
+        "resource_id": ".*store",
+        "class": ".*RadioButton"
+      }
+  },
+  "states": {
+      "main_state": {
+          "activity": ".*mynetvue4.ui.home.HomeActivity",
+          "views": [
+              "notifications", "playback", "settings", "shop1", "shop2","shop3"
+          ]
+      }
+  },
+  "operations": {
+      "goto_notifications": [
+          {
+              "event_type": "touch",
+              "target_view": "notifications"
+          },
+          {
+              "event_type": "touch",
+              "target_view": "playback"
+          },
+          {
+              "event_type": "touch",
+              "target_view": "settings"
+          },
+          {
+              "event_type": "touch",
+              "target_view": "shop1"
+          },
+          {
+              "event_type": "touch",
+              "target_view": "shop2"
+          },
+          {
+              "event_type": "touch",
+              "target_view": "shop3"
+          }
+      ]
+  },
+  "main": {
+      "main_state": ["goto_notifications"]
+  }
+}

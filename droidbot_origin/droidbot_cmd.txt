@@ -1,0 +1,29 @@
+droidbot -a /Users/tracy/Documents/github/automation/apps/com.august.luna -policy dfs_greedy -keep_env -keep_app -ignore_ad -grant_perm -o /Users/tracy/Documents/github/automation/output/august_test_checkbox -script /Users/tracy/Documents/GitHub/droidbot-confiot/droidbot_origin/script_samples/august_test_script.json -target_activity com.august.luna.ui.main.house.HouseActivity
+
+host
+droidbot -a /Users/tracy/Documents/github/automation/apps/com.netviewtech -policy dfs_greedy -keep_env -keep_app -ignore_ad -grant_perm -o /Users/tracy/Documents/github/automation/output/netvue_host -script /Users/tracy/Documents/GitHub/droidbot-confiot/droidbot_origin/script_samples/netvue_host_script_motion.json
+
+guest
+droidbot -a /Users/tracy/Documents/github/automation/apps/com.netviewtech -policy dfs_greedy -keep_env -keep_app -ignore_ad -grant_perm -o /Users/tracy/Documents/github/automation/output/netvue_guest_with_log -script /Users/tracy/Documents/GitHub/droidbot-confiot/droidbot_origin/script_samples/netvue_guest_script_log.json -target_activity com.netviewtech.mynetvue4.ui.history.HistoryActivity
+
+host
+droidbot -a /Users/tracy/Documents/github/automation/apps/com.netviewtech -policy dfs_greedy -keep_env -keep_app -ignore_ad -grant_perm -o /Users/tracy/Documents/github/automation/output/netvue_host_delete_log -script /Users/tracy/Documents/GitHub/droidbot-confiot/droidbot_origin/script_samples/netvue_host_script_delete_log.json -target_activity com.netviewtech.mynetvue4.ui.history.HistoryActivity
+
+guest
+droidbot -a /Users/tracy/Documents/github/automation/apps/com.netviewtech -policy dfs_greedy -keep_env -keep_app -ignore_ad -grant_perm -o /Users/tracy/Documents/github/automation/output/netvue_guest_log_change_2 -script /Users/tracy/Documents/GitHub/droidbot-confiot/droidbot_origin/script_samples/netvue_guest_script_log.json -target_activity com.netviewtech.mynetvue4.ui.history.HistoryActivity
+
+
+cd /Users/tracy/Documents/github/droidbot-confiot/Confiot_main
+python3.11 test.py
+
+
+
+mihome camera [view history log] | 
+mihome share home/share device [privilege] | 
+mihome share home/share device [view others] | 
+google home mini third party revocation [third party] | 
+smartthings [automation] | 
+
+
+
+

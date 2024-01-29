@@ -1,0 +1,54 @@
+{
+  "views": {
+      "open_camera_textView": {
+          "text": "Open",
+          "class": ".*TextView"
+      },
+      "surveillance_textView": {
+          "text": "Surveillance",
+          "class": ".*TextView"
+      }
+  },
+  "states": {
+      "open_camera": {
+          "activity": ".*SmartHomeMainActivity",
+          "views": [
+              "open_camera_textView"
+          ]
+      },
+      "surveillance": {
+          "activity": ".*PluginRNActivityCamera",
+          "views": [
+              "surveillance_textView"
+          ]
+      }
+  },
+  "operations": {
+      "click_open_camera_textView": [
+          {
+              "event_type": "touch",
+              "target_view": "open_camera_textView"
+          }
+      ],
+      "click_surveillance_textView": [
+          {
+              "event_type": "touch",
+              "target_view": "surveillance_textView"
+          }
+      ]
+  },
+  "main": {
+      "open_camera": [
+          {
+              "op_id": "click_open_camera_textView",
+              "prob": 0.5
+          }
+      ],
+      "surveillance": [
+          {
+              "op_id": "click_surveillance_textView",
+              "prob": 0.5
+          }
+      ]
+  }
+}

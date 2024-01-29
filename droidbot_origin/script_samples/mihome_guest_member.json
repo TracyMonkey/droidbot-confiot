@@ -1,0 +1,132 @@
+{
+  "views": {
+      "open_camera_textView": {
+          "text": "Open",
+          "class": ".*TextView"
+      },
+      "surveillance_textView": {
+          "text": "Surveillance",
+          "class": ".*TextView"
+      },
+      "camera_settings_button": {
+        "content_desc": "rnLabelBtnSetting",
+        "class": ".*Button"
+      },
+      "profile_tag": {
+        "text": "Profile",
+        "class": ".*TextView"
+      },
+      "smart_tag": {
+        "text": "Smart",
+        "class": ".*TextView"
+      },
+      "home_textView": {
+        "text": "home",
+        "class": ".*TextView"
+      },
+      "my_home_textView":{
+        "text": "My home",
+        "class": ".*TextView"
+      }
+  },
+  "states": {
+      "open_camera": {
+          "activity": ".*SmartHomeMainActivity",
+          "views": [
+              "open_camera_textView", "profile_tag", "smart_tag"
+          ]
+      },
+      "camera_state": {
+        "activity": ".*PluginRNActivityCamera",
+        "views": [
+            "camera_settings_button", "surveillance_textView"
+        ]
+      },
+      "home_state": {
+        "activity": ".*MultiHomeManagerActivity",
+        "views": [
+            "home_textView", "my_home_textView"
+        ]
+      }
+  },
+  "operations": {
+      "click_open_camera_textView": [
+          {
+              "event_type": "touch",
+              "target_view": "open_camera_textView"
+          }
+      ],
+      "click_profile_tag": [
+        {
+            "event_type": "touch",
+            "target_view": "profile_tag"
+        }
+      ],
+      "click_smart_tag": [
+        {
+            "event_type": "touch",
+            "target_view": "smart_tag"
+        }
+      ],
+      "click_surveillance_textView": [
+        {
+            "event_type": "touch",
+            "target_view": "surveillance_textView"
+        }
+      ],
+      "click_camera_settings_button": [
+          {
+              "event_type": "touch",
+              "target_view": "camera_settings_button"
+          }
+      ],
+      "click_home_textView": [
+        {
+            "event_type": "touch",
+            "target_view": "home_textView"
+        }
+      ],
+      "click_my_home_textView": [
+        {
+            "event_type": "touch",
+            "target_view": "my_home_textView"
+        }
+      ]
+  },
+  "main": {
+      "open_camera": [
+          {
+            "op_id": "click_open_camera_textView",
+            "prob": 0.5
+          },
+          {
+            "op_id": "click_profile_tag",
+            "prob": 0.1
+          },
+          {
+            "op_id": "click_smart_tag",
+            "prob": 0
+          }
+      ],
+      "camera_state": [
+          {
+            "op_id": "click_camera_settings_button",
+            "prob": 0.1
+          },
+          {
+            "op_id": "click_surveillance_textView",
+            "prob": 0.1
+          }
+      ],
+      "home_state": [
+          {
+            "op_id": "click_home_textView",
+            "prob": 0.1
+          },
+          {
+            "op_id": "click_my_home_textView",
+            "prob": 0.5
+          }
+      ]
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "views": {
+      "notifications": {
+        "in_coordinates": [
+            [296,1157],[405,1266]
+          ],
+          "out_coordinates": [
+            [296,1157],[405,1266],[296,1157],[405,1266]
+          ],
+          "class": ".*ImageView"
+      },
+      "playback": {
+        "in_coordinates": [
+            [135,1157],[244,1266]
+          ],
+          "out_coordinates": [
+            [135,1157],[244,1266],[135,1157],[244,1266]
+          ],
+          "class": ".*ImageView"
+      },
+      "settings": {
+        "in_coordinates": [
+            [457,1157],[566,1266]
+          ],
+          "out_coordinates": [
+            [457,1157],[566,1266],[457,1157],[566,1266]
+          ],
+          "class": ".*ImageView"
+      }
+  },
+  "states": {
+      "main_state": {
+          "activity": ".*mynetvue4.ui.home.HomeActivity",
+          "views": [
+              "notifications", "playback", "settings"
+          ]
+      }
+  },
+  "operations": {
+      "goto_notifications": [
+          {
+              "event_type": "touch",
+              "target_view": "notifications"
+          }
+      ],
+      "goto_playback": [
+          {
+              "event_type": "touch",
+              "target_view": "playback"
+          }
+      ],
+      "goto_settings": [
+        {
+            "event_type": "touch",
+            "target_view": "settings"
+        }
+      ]
+  },
+  "main": {
+      "main_state": [
+          {
+            "op_id": "goto_notifications",
+            "prob": 0.2
+          },
+          {
+            "op_id": "goto_playback",
+            "prob": 0.2
+          },
+          {
+            "op_id": "goto_settings",
+            "prob": 0.2
+          }
+      ]
+  }
+}
