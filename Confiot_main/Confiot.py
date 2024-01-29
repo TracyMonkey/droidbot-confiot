@@ -162,7 +162,8 @@ class Confiot:
             res = query_config_resource_mapping(prompt)
 
             with open(output_path + "/ConfigResourceMappingResponse.txt", "a") as f:
-                f.write(res)
+                f.write(paths_str + "\n")
+                f.write(res + "\n")
             if (res):
                 self.ConfigResourceMapper += parse_config_resource_mapping(res)
 

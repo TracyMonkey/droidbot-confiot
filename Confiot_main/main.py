@@ -255,12 +255,12 @@ Infer Policy with the feasibility of the configurations
 if __name__ == "__main__":
 
     # test
-    s = settings("192.168.31.121:5555", "/root/documents/Output/mihome/mihome-smartscale/mihome.apk",
-                 "/root/documents/Output/mihome/mihome-smartscale/guest/result")
-    GuestActor = GuestInitialization()
-    HostActor = HostInitialization(path="/root/documents/Output/mihome/mihome-smartscale/guest/result" +
-                                   "/../../host/result/Confiot")
-    InferPolicyWithFeasibility(HostActor, GuestActor, "86f225e1a61549e96027ff8248064e501f5571ec288e421cc6b3f10551fb9083")
+    # s = settings("192.168.31.121:5555", "/root/documents/Output/mihome/mihome-smartscale/mihome.apk",
+    #              "/root/documents/Output/mihome/mihome-smartscale/guest/result")
+    # GuestActor = GuestInitialization()
+    # HostActor = HostInitialization(path="/root/documents/Output/mihome/mihome-smartscale/guest/result" +
+    #                                "/../../host/result/Confiot")
+    # InferPolicyWithFeasibility(HostActor, GuestActor, "86f225e1a61549e96027ff8248064e501f5571ec288e421cc6b3f10551fb9083")
 
     # s = settings("14131FDF600073", "/root/documents/Output/Huawei_AI_Life/Huawei.apk",
     #              "/root/documents/Output/Huawei_AI_Life/host/result")
@@ -300,7 +300,7 @@ if __name__ == "__main__":
 
     if (options.host):
         HostActor = HostInitialization()
-        HostAction(HostActor.FilteredConfigResourceMapper, task_point)
+        # HostAction(HostActor.FilteredConfigResourceMapper, task_point)
     elif (options.guest and not options.policy):
         GuestActor = GuestInitialization()
         HostConfiotPath = options.droid_output + "/../../host/result/Confiot" if (
