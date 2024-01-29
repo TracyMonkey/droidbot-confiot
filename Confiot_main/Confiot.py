@@ -531,6 +531,16 @@ class Confiot:
                         else:
                             event_config[event_str] = self.uiTree.nodes_dict[config_id]
                             config_nodes[src_state].append(self.uiTree.nodes_dict[config_id])
+                    elif ('intent' in e and 'am start' in e['intent']):
+                        config_id = "000"
+                        if (config_id not in self.uiTree.nodes_dict):
+                            n = Node(config_id, description="STARTAPP", state=src_state)
+                            self.uiTree.nodes_dict[config_id] = n
+                            event_config[event_str] = n
+                            self.uiTree.add_node(n)
+                            self.uiTree.start_node = config_id
+                        else:
+                            event_config[event_str] = self.uiTree.nodes_dict[config_id]
 
         indegree = {}
         for n in self.uiTree.nodes:
@@ -551,14 +561,16 @@ class Confiot:
                 indegree[config] += 1
                 self.uiTree.add_edge(e)
 
-        start_node = list(indegree.keys())[0]
-        for n in indegree:
-            if (indegree[n] < indegree[start_node]):
-                start_node = n
+        # start_node = Node("000", description="STARTAPP", state='')
+        # self.uiTree.nodes_dict["000"] = start_node
+        # self.uiTree.add_node(start_node)
 
-        self.uiTree.start_node = start_node.name
+        # for n in indegree:
+        #     if (indegree[n] == 0):
+        #         e = Edge(start_node, n, [])
+        #         self.uiTree.add_edge(e)
 
-        print("[DBG]: UITree start node:", start_node)
+        # print("[DBG]: UITree start node:", start_node)
         UITree.draw(self.uiTree, settings.Confiot_output)
 
         config_paths = []
