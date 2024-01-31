@@ -433,18 +433,18 @@ class Confiot:
         cap += '}'
         return cap
 
-    # 获取与config_id配置相关的文本描述（child/brother node）
-    def get_related_descrition(self, state, config_id, view_str):
+    # 获取与temp_id配置相关的文本描述（child/brother node）
+    def get_related_descrition(self, state, temp_id, view_str, bounds):
         config_description = ""
         current_config = None
 
         if (state not in self.state_contents):
             return current_config, config_description
-        if (config_id >= len(self.state_contents[state])):
+        if (temp_id >= len(self.state_contents[state])):
             return current_config, config_description
 
         for c in self.state_contents[state]:
-            if (c["view_str"] == view_str):
+            if (c["view_str"] == view_str and c['bounds'] == bounds):
                 current_config = c
                 break
 
@@ -479,7 +479,8 @@ class Confiot:
             return current_config, config_description
 
         for ch in child_configs:
-            chnode, desc = self.get_related_descrition(state, ch, self.state_contents[state][ch]["view_str"])
+            chnode, desc = self.get_related_descrition(state, ch, self.state_contents[state][ch]["view_str"],
+                                                       self.state_contents[state][ch]['bounds'])
             if (desc != -1 and desc != ''):
                 if (desc not in config_description):
                     config_description += f"{desc}"
@@ -539,7 +540,9 @@ class Confiot:
                         config_id = str(e['view']['temp_id'])
                         parent = str(e['view']['parent'])
                         view_str = e['view']["view_str"]
-                        config_node, config_description = self.get_related_descrition(src_state, int(config_id), view_str)
+                        bounds = e['view']["bounds"]
+                        config_node, config_description = self.get_related_descrition(src_state, int(e['view']['temp_id']),
+                                                                                      view_str, bounds)
                         if (config_node):
                             cap = self.get_config_cap(config_node)
                             config_description = cap + config_description

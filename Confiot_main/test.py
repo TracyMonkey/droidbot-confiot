@@ -176,7 +176,7 @@ def test_mapping_uitree():
     from Confiot_main.util import query_config_resource_mapping, parse_config_resource_mapping, get_ConfigResourceMapper_from_file
     settings.device_serial = "192.168.31.218:5555"
     settings.app_path = "/root/documents/Output/Huawei_AI_Life/Huawei.apk"
-    settings.droid_output = "/root/documents/Output/Huawei_AI_Life/guest/result"
+    settings.droid_output = "/root/documents/Output/August/guest"
 
     confiot = Confiot()
     policy_generator = PolicyGenerator()
@@ -198,4 +198,4 @@ if __name__ == "__main__":
     #test_device_guest_config_walker()
     # test_STEP0()
 
-    test_goto_state()
+    test_mapping_uitree()

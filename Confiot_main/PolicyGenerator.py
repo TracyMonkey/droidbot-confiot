@@ -24,6 +24,8 @@ class PolicyGenerator:
         potential_policies = []
 
         comparator = UIComparator(host_analyzing_config_before, host_analyzing_config_after)
+        desc = []
+        policy_change = []
 
         UI_old = comparator.old_hierarchy_path + f"/{state_str}.xml"
         UI_new = comparator.new_hierarchy_path + f"/{state_str}.xml"
@@ -39,6 +41,11 @@ class PolicyGenerator:
         UI_delete = comparator.get_UI_delete(hierachy_compare_result)
 
         # print(UI_add, UI_delete)
+
+        if (len(UI_add) > len(UI_delete)):
+            policy_change.append("Add")
+        else:
+            policy_change.append("Delete")
 
         change_nodes_count = 0
         for n in UI_add:
@@ -71,6 +78,7 @@ class PolicyGenerator:
             desc = re.findall("[a-zA-Z]+", desc)
             # 希望是完整的单词
             if (len(desc) > 0 and len(desc[0]) > 2):
+                print(desc)
                 for cr in ConfigResourceMapper:
                     if (state_str != cr["state"]):
                         continue
@@ -91,7 +99,21 @@ class PolicyGenerator:
 
         # print(add_related_resources)
 
-        return {"Add": list(add_related_resources), "Delete": list(remove_related_resources)}
+        if desc == []:
+            return {
+                "Add": list(add_related_resources),
+                "Delete": list(remove_related_resources),
+                "Conf_name": desc,
+                "Change": "Change views without text or content_description."
+            }
+        else:
+            return {
+                "Add": list(add_related_resources),
+                "Delete": list(remove_related_resources),
+                "Conf_name": desc[0],
+                "Change": policy_change
+            }
+
         # 如果相关的host的配置会导致资源增多或减少，但是客人没有看到改变，则生成一条客人无法看见的policy
         if (resource_changed and len(add_related_resources) == 0):
             pass
