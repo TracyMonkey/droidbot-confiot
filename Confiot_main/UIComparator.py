@@ -25,9 +25,7 @@ class UIComparator:
         self.second_option = second_option
         self.old_hierarchy_path = settings.UI_output + first_option
         self.new_hierarchy_path = settings.UI_output + second_option
-        self.compare_output_path = settings.Static_comparation_output + f"/{first_option}_to_{second_option}/"
-        if (not os.path.exists(settings.Static_comparation_output)):
-            os.makedirs(settings.Static_comparation_output)
+        self.compare_output_path = settings.UIHierarchy_comparation_output + f"/{first_option}_to_{second_option}/"
 
         if (not os.path.exists(self.compare_output_path)):
             os.makedirs(self.compare_output_path)
@@ -106,9 +104,13 @@ class UIComparator:
         old_fp = None
         new_fp = None
         with open(old_file, 'r', encoding='UTF-8') as f:
-            old_fp = self.format_xml(f.read()).split('\n')
+            old_fp = self.format_xml(f.read()).replace('<text>None</text>',
+                                                       '').replace('<content_description>None</content_description>',
+                                                                   '').split('\n')
         with open(new_file, 'r', encoding='UTF-8') as f:
-            new_fp = self.format_xml(f.read()).split('\n')
+            new_fp = self.format_xml(f.read()).replace('<text>None</text>',
+                                                       '').replace('<content_description>None</content_description>',
+                                                                   '').split('\n')
         if old_fp is None or new_fp is None:
             print("[ERR]: cannot open file: " + old_file + " or " + new_file)
             return
@@ -122,6 +124,7 @@ class UIComparator:
         return diff_html
 
     @staticmethod
+    # return: feasible:true
     def compare_xml_files_with_bounds(file1, file2, bounds):
         # 目前只判断了checkable的情况，如果点击后无效UI property没有变化，则证明该配置无效
         before_xml = ET.parse(file1)
@@ -130,13 +133,13 @@ class UIComparator:
         before_root = before_xml.getroot()
         after_root = after_xml.getroot()
 
-        print("[DBG]: Finding config in bounds: ", bounds)
+        # print("[DBG]: Finding config in bounds: ", bounds)
 
         for node in before_root:
             before_config_node = None
             for attr in node:
-                if (node.tag == "bounds"):
-                    if (node.text == bounds):
+                if (attr.tag == "bounds"):
+                    if (attr.text == bounds):
                         before_config_node = node
                         break
             if (before_config_node):
@@ -145,8 +148,8 @@ class UIComparator:
         for node in after_root:
             after_config_node = None
             for attr in node:
-                if (node.tag == "bounds"):
-                    if (node.text == bounds):
+                if (attr.tag == "bounds"):
+                    if (attr.text == bounds):
                         after_config_node = node
                         break
             if (after_config_node):
@@ -157,27 +160,22 @@ class UIComparator:
 
         if (not before_config_node):
             print("[ERR]: Cannot find config in before state")
-            return True
         elif (before_config_node and not after_config_node):
             # [TODO-confiot-11.29]: 可能跳转到别的activity中了，一般是表示这个config是成功进行的，有没有别的情况？
-            return True
+            print("[ERR]: different activities")
         elif (before_config_node and after_config_node):
             # before_node = before_config_node[0]
             # after_node = after_config_node[0]
 
-            is_disabled = True
-
-            # checkable
+            # checkbox
             if (before_config_node[0].text == "True"):
                 # checked
                 if (before_config_node[9].text != after_config_node[9].text):
-                    is_disabled = False
+                    return True
 
-            ret = not is_disabled
-            return ret
         else:
             print("[ERR]: Find more than one config node: ", before_config_node, after_config_node)
-            return True
+        return None
         # for node in bounds_related_nodes:
         #     print(ET.tostring(node, encoding='unicode'))
 

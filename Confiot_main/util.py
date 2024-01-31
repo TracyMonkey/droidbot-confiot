@@ -188,6 +188,10 @@ def add_testdata_for_task(task):
         "height": "with the weight 150",
     }
 
+    log = ["records", "log"]
+
+    automation = ["automation"]
+
     result = task
     for key in username:
         if (key in task.lower()):
@@ -196,6 +200,14 @@ def add_testdata_for_task(task):
             else:
                 result = result + ", with the user name `guest`, age 18, gender `male`, weight `100`, height `150`"
             break
+
+    for i in log:
+        if (i in task.lower()):
+            result = result + ", and remove it."
+
+    for i in automation:
+        if (i in task.lower()):
+            result = result + ", with the name `TESTAutomation` and the task: Play music in 1 minute."
 
     for key in testdata:
         if (key in task.lower()):
@@ -272,6 +284,14 @@ def get_ConfigResourceMapper_from_file(file):
 
     ConfigResourceMapper = json.loads(content)
     return ConfigResourceMapper
+
+
+def progress(percent, width=50):
+    if percent >= 100:
+        percent = 100
+
+    show_str = ('[%%-%ds]' % width) % (int(width * percent / 100) * "#")
+    print('\r%s %d%%' % (show_str, percent), end='')
 
 
 if __name__ == "__main__":

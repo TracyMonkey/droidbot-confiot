@@ -9,8 +9,9 @@ sys.path.append(BASE_DIR + "/../")
 
 from Confiot_main.Confiot import ConfiotGuest, ConfiotHost, Confiot
 from Confiot_main.settings import settings
-from Confiot_main.util import get_ConfigResourceMapper_from_file
+from Confiot_main.util import get_ConfigResourceMapper_from_file, progress
 from Confiot_main.PolicyGenerator import PolicyGenerator
+from Confiot_main.UIComparator import UIComparator
 
 
 def HostInitialization(path=''):
@@ -136,6 +137,7 @@ def GuestAction(hosttasks, task_point='', replay_point='', walker_point=''):
                 cleaned_sentence = re.sub(r'[^a-zA-Z0-9 ]', '', t)
                 task_name = '_'.join(cleaned_sentence.split())
                 host_analyzing_config = str(task["Id"]) + "_" + task_name
+                host_analyzing_config = host_analyzing_config[:50]
 
                 # 主人进行task t
                 # HostRunTask(host, t)
@@ -144,7 +146,18 @@ def GuestAction(hosttasks, task_point='', replay_point='', walker_point=''):
                 GuestRunAnalysis(host_analyzing_config, replay_point, walker_point)
 
 
-def PolicyGeneration(HostActor: ConfiotHost, GuestActor: ConfiotGuest, target_state=None):
+# Infer Policy through UI Hierarchy comparison
+def InferPolicyWithUIHierarchy(HostActor: ConfiotHost, GuestActor: ConfiotGuest, target_state=None):
+    STEP1 = '''
+##########################################
+Infer Policy through UI Hierarchy comparison
+##########################################
+'''
+    print(STEP1)
+
+    if (os.path.exists(settings.UIHierarchy_comparation_output + "/UIHierarchyChanges.txt")):
+        return
+
     policy_generator = PolicyGenerator()
     host_tasks = ["000"]
 
@@ -157,7 +170,8 @@ def PolicyGeneration(HostActor: ConfiotHost, GuestActor: ConfiotGuest, target_st
             host_tasks.append(host_analyzing_config)
 
     UIHierarchyChanges = {}
-    for node in GuestActor.utg_graph.nodes:
+    for n in range(len(GuestActor.utg_graph.nodes)):
+        node = GuestActor.utg_graph.nodes[n]
         state_str = node.name
         UIHierarchyChanges[state_str] = []
         before_config = None
@@ -172,30 +186,80 @@ def PolicyGeneration(HostActor: ConfiotHost, GuestActor: ConfiotGuest, target_st
                 after_config = host_analyzing_config
                 resource_changes = policy_generator.Policy_generate_1(before_config, after_config, state_str,
                                                                       GuestActor.ConfigResourceMapper)
-                for r in resource_changes:
-                    UIHierarchyChanges[state_str].append(resource_changes)
 
-                s = json.dumps(UIHierarchyChanges[state_str])
-                with open(settings.Static_comparation_output + f"/{before_config}_to_{after_config}/{state_str}.txt", 'w') as f:
+                resource_changes["host_analyzing_config"] = f"{before_config}_to_{after_config}"
+                UIHierarchyChanges[state_str].append(resource_changes)
+
+                s = json.dumps(resource_changes)
+                with open(settings.UIHierarchy_comparation_output + f"/{before_config}_to_{after_config}/{state_str}.txt",
+                          'w') as f:
                     f.write(s)
                 before_config = after_config
 
+        progress(100 * (n + 1) / len(GuestActor.utg_graph.nodes))
+
     UIHierarchyChanges_json = json.dumps(UIHierarchyChanges)
-    if (not os.path.exists(settings.Confiot_output + "/Result/")):
-        os.makedirs(settings.Confiot_output + "/Result/")
-    with open(settings.Confiot_output + "/Result/UIHierarchyChanges.txt", 'w') as f:
+
+    with open(settings.UIHierarchy_comparation_output + "/UIHierarchyChanges.txt", 'w') as f:
         f.write(UIHierarchyChanges_json)
+
+
+#Infer Policy with the feasibility of the configurations
+def InferPolicyWithFeasibility(HostActor: ConfiotHost, GuestActor: ConfiotGuest, target_state=None):
+    STEP2 = '''
+##########################################
+Infer Policy with the feasibility of the configurations
+##########################################
+'''
+    print(STEP2)
+    if (os.path.exists(settings.Feasibility_comparation_output + "/Feasibilities.txt")):
+        return
+
+    host_tasks = ["000"]
+
+    for task in HostActor.FilteredConfigResourceMapper:
+        for t in task["Tasks"]:
+            cleaned_sentence = re.sub(r'[^a-zA-Z0-9 ]', '', t)
+            task_name = '_'.join(cleaned_sentence.split())
+            host_analyzing_config = str(task["Id"]) + "_" + task_name
+            host_analyzing_config = host_analyzing_config[:50]
+            host_tasks.append(host_analyzing_config)
+
+    Feasibilities = {}
+    totalconfs = len(GuestActor.conf_list) * len(host_tasks)
+    count = 0
+    for host_analyzing_config in host_tasks:
+        # 分析每个guest的config
+        Feasibilities[host_analyzing_config] = {}
+        for conf in GuestActor.conf_list:
+            config_view_name = conf["view_images"] + str(conf["event_id"])
+            xml_dir = settings.UI_output + f"/{host_analyzing_config}/guest:" + config_view_name
+
+            if (os.path.exists(xml_dir + "/before.xml") and os.path.exists(xml_dir + "/after.xml")):
+                feasible = UIComparator.compare_xml_files_with_bounds(xml_dir + "/before.xml", xml_dir + "/after.xml",
+                                                                      str(conf['bounds']))
+                if (feasible):
+                    Feasibilities[host_analyzing_config][config_view_name] = feasible
+            else:
+                print("[ERR]: Do not found files:", xml_dir)
+                continue
+            count += 1
+            progress(100 * count / totalconfs)
+
+    Feasibilities_json = json.dumps(Feasibilities)
+
+    with open(settings.Feasibility_comparation_output + "/Feasibilities.txt", 'w') as f:
+        f.write(Feasibilities_json)
 
 
 if __name__ == "__main__":
 
     # test
-    # s = settings("192.168.31.121:5555", "/root/documents/Output/mihome/mihome-smartscale/mihome.apk",
-    #              "/root/documents/Output/mihome/mihome-smartscale/guest/result")
+    # s = settings("192.168.31.121:5555", "/root/documents/Output/Huawei_AI_Life/Huawei.apk",
+    #              "/root/documents/Output/Huawei_AI_Life/guest/result")
     # GuestActor = GuestInitialization()
-    # HostActor = HostInitialization(path="/root/documents/Output/mihome/mihome-smartscale/guest/result" +
-    #                                "/../../host/result/Confiot")
-    # PolicyGeneration(HostActor, GuestActor, "86f225e1a61549e96027ff8248064e501f5571ec288e421cc6b3f10551fb9083")
+    # HostActor = HostInitialization(path="/root/documents/Output/Huawei_AI_Life/guest/result" + "/../../host/result/Confiot")
+    # InferPolicyWithFeasibility(HostActor, GuestActor, "503c186b9a0ec74f8067fcd50b431b40b3f55c38354bec8a34a7f208136985d6")
 
     # s = settings("14131FDF600073", "/root/documents/Output/Huawei_AI_Life/Huawei.apk",
     #              "/root/documents/Output/Huawei_AI_Life/host/result")
@@ -250,4 +314,5 @@ if __name__ == "__main__":
         GuestActor = GuestInitialization()
         HostConfiotPath = options.droid_output + "/../../host/result/Confiot" if "guest" in options.droid_output else options.droid_output + "/../../guest/result/Confiot"
         HostActor = HostInitialization(path=HostConfiotPath)
-        PolicyGeneration(HostActor, GuestActor)
+        InferPolicyWithUIHierarchy(HostActor, GuestActor)
+        InferPolicyWithFeasibility(HostActor, GuestActor)

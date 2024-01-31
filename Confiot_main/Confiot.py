@@ -62,6 +62,15 @@ class Confiot:
         if (not os.path.exists(settings.Confiot_output)):
             os.makedirs(settings.Confiot_output)
 
+        if (not os.path.exists(settings.Static_comparation_output)):
+            os.makedirs(settings.Static_comparation_output)
+
+        if (not os.path.exists(settings.UIHierarchy_comparation_output)):
+            os.makedirs(settings.UIHierarchy_comparation_output)
+
+        if (not os.path.exists(settings.Feasibility_comparation_output)):
+            os.makedirs(settings.Feasibility_comparation_output)
+
         self.parse_event()
         self.parse_utg()
         self.parse_state_json()
@@ -126,7 +135,7 @@ class Confiot:
 
         paths_str_list = []
         paths_frags = []
-        frags_size = len(paths["text_paths"]) % 20
+        frags_size = len(paths["text_paths"]) // 20
         id = 0
         for p in paths["text_paths"]:
             p_str = "\",\"".join(p)
@@ -153,7 +162,8 @@ class Confiot:
             res = query_config_resource_mapping(prompt)
 
             with open(output_path + "/ConfigResourceMappingResponse.txt", "a") as f:
-                f.write(res)
+                f.write(paths_str + "\n")
+                f.write(res + "\n")
             if (res):
                 self.ConfigResourceMapper += parse_config_resource_mapping(res)
 
@@ -268,6 +278,7 @@ class Confiot:
 
         event_str_path = []
         path = self.utg_graph.find_shortest_path(self.utg_graph.start_node, target_state)
+        print(path)
         if (path):
             current_node = path[0]
             for node in path[1:]:
@@ -384,6 +395,8 @@ class Confiot:
 
         for e in utg_edges_dict:
             event_strs = [eve["event_str"] for eve in e["events"]]
+            if (event_strs == []):
+                continue
             self.utg_graph.add_edge(Edge(utg_nodes[e["from"]], utg_nodes[e["to"]], event_strs))
 
         self.utg_graph.utg_nodes = utg_nodes_dict
@@ -420,31 +433,39 @@ class Confiot:
         cap += '}'
         return cap
 
-    # 获取与config_id配置相关的文本描述（child/brother node）
-    def get_related_descrition(self, state, config_id, view_str):
+    # 获取与temp_id配置相关的文本描述（child/brother node）
+    def get_related_descrition(self, state, temp_id, view_str, bounds):
         config_description = ""
         current_config = None
 
         if (state not in self.state_contents):
             return current_config, config_description
-        if (config_id >= len(self.state_contents[state])):
+        if (temp_id >= len(self.state_contents[state])):
             return current_config, config_description
 
         for c in self.state_contents[state]:
-            if (c["view_str"] == view_str):
+            if (c["view_str"] == view_str and c['bounds'] == bounds):
                 current_config = c
                 break
 
         if (not current_config):
             return current_config, config_description
-        child_configs = current_config['children']
 
+        child_configs = current_config['children']
+        parent_config = current_config['parent']
+
+        d = ''
         if ("content_description" in current_config and current_config["content_description"] and
                 current_config["content_description"] != ''):
+            d = f"{current_config['content_description']}"
+        if (d != '' and d not in config_description):
+            config_description += f";{d}"
 
-            config_description = config_description + f"{current_config['content_description']}"
+        d = ''
         if ("text" in current_config and current_config["text"] and current_config["text"] != ''):
-            config_description = config_description + f";{current_config['text']}"
+            d = f"{current_config['text']}"
+        if (d != '' and d not in config_description):
+            config_description += f";{d}"
 
         popup = config_description.lower()
         if ("cancel" in popup or "apply" in popup or "yes" in popup or "confirm" in popup or "确定" in popup or "取消" in popup):
@@ -458,9 +479,25 @@ class Confiot:
             return current_config, config_description
 
         for ch in child_configs:
-            chnode, desc = self.get_related_descrition(state, ch, self.state_contents[state][ch]["view_str"])
+            chnode, desc = self.get_related_descrition(state, ch, self.state_contents[state][ch]["view_str"],
+                                                       self.state_contents[state][ch]['bounds'])
             if (desc != -1 and desc != ''):
-                config_description = config_description + desc
+                if (desc not in config_description):
+                    config_description += f"{desc}"
+
+        parent = self.state_contents[state][parent_config]
+        if (len(parent['children']) == 1):
+            d = ''
+            if ("content_description" in parent and parent["content_description"] and parent["content_description"] != ''):
+                d = f"{parent['content_description']}"
+            if (d != '' and d not in config_description):
+                config_description += f";{d}"
+
+            d = ''
+            if ("text" in parent and parent["text"] and parent["text"] != ''):
+                d = f"{parent['text']}"
+            if (d != '' and d not in config_description):
+                config_description += f";{d}"
 
         return current_config, config_description
 
@@ -503,7 +540,9 @@ class Confiot:
                         config_id = str(e['view']['temp_id'])
                         parent = str(e['view']['parent'])
                         view_str = e['view']["view_str"]
-                        config_node, config_description = self.get_related_descrition(src_state, int(config_id), view_str)
+                        bounds = e['view']["bounds"]
+                        config_node, config_description = self.get_related_descrition(src_state, int(e['view']['temp_id']),
+                                                                                      view_str, bounds)
                         if (config_node):
                             cap = self.get_config_cap(config_node)
                             config_description = cap + config_description
@@ -511,7 +550,7 @@ class Confiot:
                         if (src_state not in config_nodes):
                             config_nodes[src_state] = []
 
-                        config_id = config_id + "-" + parent
+                        config_id = config_id + "-" + parent + "-" + src_state[:5]
                         if (config_id not in self.uiTree.nodes_dict):
                             n = Node(config_id, description=config_description, state=src_state)
                             self.uiTree.nodes_dict[config_id] = n
@@ -521,6 +560,16 @@ class Confiot:
                         else:
                             event_config[event_str] = self.uiTree.nodes_dict[config_id]
                             config_nodes[src_state].append(self.uiTree.nodes_dict[config_id])
+                    elif ('intent' in e and 'am start' in e['intent']):
+                        config_id = "000"
+                        if (config_id not in self.uiTree.nodes_dict):
+                            n = Node(config_id, description="STARTAPP", state=src_state)
+                            self.uiTree.nodes_dict[config_id] = n
+                            event_config[event_str] = n
+                            self.uiTree.add_node(n)
+                            self.uiTree.start_node = config_id
+                        else:
+                            event_config[event_str] = self.uiTree.nodes_dict[config_id]
 
         indegree = {}
         for n in self.uiTree.nodes:
@@ -541,14 +590,16 @@ class Confiot:
                 indegree[config] += 1
                 self.uiTree.add_edge(e)
 
-        start_node = list(indegree.keys())[0]
-        for n in indegree:
-            if (indegree[n] < indegree[start_node]):
-                start_node = n
+        # start_node = Node("000", description="STARTAPP", state='')
+        # self.uiTree.nodes_dict["000"] = start_node
+        # self.uiTree.add_node(start_node)
 
-        self.uiTree.start_node = start_node.name
+        # for n in indegree:
+        #     if (indegree[n] == 0):
+        #         e = Edge(start_node, n, [])
+        #         self.uiTree.add_edge(e)
 
-        print("[DBG]: UITree start node:", start_node)
+        # print("[DBG]: UITree start node:", start_node)
         UITree.draw(self.uiTree, settings.Confiot_output)
 
         config_paths = []

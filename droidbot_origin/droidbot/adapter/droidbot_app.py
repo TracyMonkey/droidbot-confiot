@@ -210,6 +210,9 @@ class DroidBotAppConn(Adapter):
         view_tree['size'] = "%d*%d" % (width, height)
         view_tree['bounds'] = bounds
 
+        # syncxxx: 排除那些bounds小于0的views
+        if (bounds[0][0] < 0 or bounds[0][1] < 0 or bounds[1][0] < 0 or bounds[1][1] < 0):
+            return
         view_list.append(view_tree)
         children_ids = []
         for child_tree in view_tree['children']:
@@ -218,6 +221,7 @@ class DroidBotAppConn(Adapter):
                 if "ad" in id_word_list or \
                    "banner" in id_word_list:
                     continue
+
             child_tree['parent'] = tree_id
             self.__view_tree_to_list(child_tree, view_list)
             children_ids.append(child_tree['temp_id'])

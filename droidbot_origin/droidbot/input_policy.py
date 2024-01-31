@@ -486,6 +486,7 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
                     self.__random_explore = True
                 else:
                     # Start the app
+                    import time
                     self.__event_trace += EVENT_FLAG_START_APP
                     self.logger.info("Trying to start the app...")
                     return IntentEvent(intent=start_app_intent)
@@ -536,7 +537,7 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
                 self.logger.info("Trying an unexplored event.")
                 self.__event_trace += EVENT_FLAG_EXPLORE
                 # syncxxx: 过滤同一位置的按钮
-                import sys,os
+                import sys, os
                 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
                 sys.path.append(BASE_DIR + "/../../")
                 from Confiot_main.settings import settings

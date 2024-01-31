@@ -3,7 +3,7 @@ import logging
 import subprocess
 import time
 
-from .input_event import EventLog
+from .input_event import EventLog, IntentEvent
 from .input_policy import UtgBasedInputPolicy, UtgNaiveSearchPolicy, UtgGreedySearchPolicy, \
                          UtgReplayPolicy, \
                          ManualPolicy, \
@@ -105,6 +105,9 @@ class InputManager(object):
         event_log.start()
         while True:
             time.sleep(self.event_interval)
+            # syncxxx: launch多等待2秒
+            if (isinstance(event, IntentEvent)):
+                time.sleep(2)
             if not self.device.pause_sending_event:
                 break
         event_log.stop()

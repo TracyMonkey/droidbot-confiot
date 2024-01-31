@@ -12,6 +12,8 @@ class settings:
     Confiot_output = f"{droid_output}/Confiot"
     UI_output = Confiot_output + "/UI/"
     Static_comparation_output = Confiot_output + "/Comparation/"
+    UIHierarchy_comparation_output = Static_comparation_output + "/UIHierarchy/"
+    Feasibility_comparation_output = Static_comparation_output + "/Feasibility/"
 
     ##### Screen Capture resolution for GPT ######
     resol_x = 230
@@ -35,8 +37,8 @@ class settings:
     # precise_backs: 精准匹配某些views
 
     # Huawei
-    # backs = ([[27, 63], [135, 171]], [[37, 164], [106, 233]])
-    # precise_backs = ([[360, 684], [468, 810]],)
+    backs = ([[27, 63], [135, 171]], [[37, 164], [106, 233]])
+    precise_backs = ([[360, 684], [468, 810]],)
 
     # 米家
     # backs = ()
@@ -61,3 +63,5 @@ class settings:
         settings.Confiot_output = settings.droid_output + "/Confiot/"
         settings.UI_output = settings.Confiot_output + "/UI/"
         settings.Static_comparation_output = settings.Confiot_output + "/Comparation/"
+        settings.UIHierarchy_comparation_output = settings.Static_comparation_output + "/UIHierarchy/"
+        settings.Feasibility_comparation_output = settings.Static_comparation_output + "/Feasibility/"
