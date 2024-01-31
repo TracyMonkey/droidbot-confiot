@@ -255,18 +255,18 @@ Infer Policy with the feasibility of the configurations
 if __name__ == "__main__":
 
     # test
-    # s = settings("192.168.31.121:5555", "/root/documents/Output/Huawei_AI_Life/Huawei.apk",
-    #              "/root/documents/Output/Huawei_AI_Life/guest/result")
+    # s = settings("17291JECB10652", "/Users/tracy/Documents/github/automation/apps/com.august.luna",
+    #              "/Users/tracy/Documents/GitHub/automation/output/august/guest/")
     # GuestActor = GuestInitialization()
-    # HostActor = HostInitialization(path="/root/documents/Output/Huawei_AI_Life/guest/result" + "/../../host/result/Confiot")
-    # InferPolicyWithFeasibility(HostActor, GuestActor, "503c186b9a0ec74f8067fcd50b431b40b3f55c38354bec8a34a7f208136985d6")
+    # HostActor = HostInitialization(path="/Users/tracy/Documents/GitHub/automation/output/august/guest/" + "/../host/Confiot")
+    # InferPolicyWithUIHierarchy(HostActor, GuestActor, "41ba9a610f10c04fc100d2fee476b7b9dc894514e73d16a25f8e468ae228f902")
 
     # s = settings("14131FDF600073", "/root/documents/Output/Huawei_AI_Life/Huawei.apk",
     #              "/root/documents/Output/Huawei_AI_Life/host/result")
     # # HostActor = HostInitialization()
     # HostAction(None, "2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
 
-    os.environ["https_proxy"] = "http://192.168.72.1:1083"
+    # os.environ["https_proxy"] = "http://192.168.72.1:1083"
     parser = OptionParser()
     parser.add_option("-a", "--app-path", dest="app_path", help="The apk path of the target application")
     parser.add_option("-d", "--device", dest="device", help="The device serial")
@@ -302,9 +302,9 @@ if __name__ == "__main__":
         HostAction(HostActor.FilteredConfigResourceMapper, task_point)
     elif (options.guest and not options.policy):
         GuestActor = GuestInitialization()
-        HostConfiotPath = options.droid_output + "/../../host/result/Confiot" if (
-            "guest" in options.droid_output) else options.droid_output + "/../../guest/result/Confiot"
-        # print(HostConfiotPath)
+        HostConfiotPath = options.droid_output + "/../host/Confiot" if (
+            "guest" in options.droid_output) else options.droid_output + "/../guest/Confiot"
+        print(HostConfiotPath)
         HostActor = HostInitialization(path=HostConfiotPath)
         GuestAction(HostActor.FilteredConfigResourceMapper,
                     task_point=task_point,
@@ -312,7 +312,7 @@ if __name__ == "__main__":
                     walker_point=walker_point)
     elif (options.guest and options.policy):
         GuestActor = GuestInitialization()
-        HostConfiotPath = options.droid_output + "/../../host/result/Confiot" if "guest" in options.droid_output else options.droid_output + "/../../guest/result/Confiot"
+        HostConfiotPath = options.droid_output + "/../host/Confiot" if "guest" in options.droid_output else options.droid_output + "/../guest/Confiot"
         HostActor = HostInitialization(path=HostConfiotPath)
         InferPolicyWithUIHierarchy(HostActor, GuestActor)
         InferPolicyWithFeasibility(HostActor, GuestActor)

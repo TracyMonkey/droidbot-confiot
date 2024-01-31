@@ -26,12 +26,17 @@ class PolicyGenerator:
         comparator = UIComparator(host_analyzing_config_before, host_analyzing_config_after)
         desc = []
         policy_change = []
+        desc = []
+        policy_change = []
 
         UI_old = comparator.old_hierarchy_path + f"/{state_str}.xml"
         UI_new = comparator.new_hierarchy_path + f"/{state_str}.xml"
         hierachy_compare_result = comparator.compare_output_path + f"/{state_str}.html"
+        hierachy_compare_result = comparator.compare_output_path + f"/{state_str}.html"
 
         if (not os.path.exists(UI_old) or not os.path.exists(UI_new)):
+            print("[ERR]: Do not found files:", UI_old, UI_new)
+            return {}
             print("[ERR]: Do not found files:", UI_old, UI_new)
             return {}
 
@@ -58,6 +63,7 @@ class PolicyGenerator:
         # 未进入同一个state
         if (change_nodes_count > 10):
             return {}
+            return {}
 
         for node in UI_add + UI_delete:
             text = re.findall("<text>(.*?)</text>", node["element"])
@@ -79,12 +85,17 @@ class PolicyGenerator:
             # 希望是完整的单词
             if (len(desc) > 0 and len(desc[0]) > 2):
                 print(desc)
+                print(desc)
                 for cr in ConfigResourceMapper:
                     if (state_str != cr["state"]):
                         continue
 
                     if (text != '' and text in cr["Path"][-1].replace("\n", '').replace(' ', '').replace('\t', '')):
                         for r in cr["Resources"]:
+                            if (node in UI_add):
+                                add_related_resources.add(r)
+                            else:
+                                remove_related_resources.add(r)
                             if (node in UI_add):
                                 add_related_resources.add(r)
                             else:
@@ -117,6 +128,13 @@ class PolicyGenerator:
         # 如果相关的host的配置会导致资源增多或减少，但是客人没有看到改变，则生成一条客人无法看见的policy
         if (resource_changed and len(add_related_resources) == 0):
             pass
+
+    # def Policy_generate_2(self,
+    #                       host_analyzing_config_before,
+    #                       host_analyzing_config_after,
+    #                       state_str,
+    #                       ConfigResourceMapper,
+    #                       resource_changed=False):
 
     # def Policy_generate_2(self,
     #                       host_analyzing_config_before,
