@@ -19,14 +19,13 @@ class PolicyGenerator:
                           state_str,
                           ConfigResourceMapper,
                           resource_changed=False):
-        add_related_resources = set()
-        remove_related_resources = set()
+        add_related_resources = dict()
+        remove_related_resources = dict()
         potential_policies = []
 
         comparator = UIComparator(host_analyzing_config_before, host_analyzing_config_after)
-        desc = []
-        policy_change = []
-        desc = []
+        desc = ""
+        # conf = set()
         policy_change = []
 
         UI_old = comparator.old_hierarchy_path + f"/{state_str}.xml"
@@ -85,42 +84,67 @@ class PolicyGenerator:
             # 希望是完整的单词
             if (len(desc) > 0 and len(desc[0]) > 2):
                 print(desc)
-                print(desc)
+                # conf.add(desc[0])
                 for cr in ConfigResourceMapper:
-                    if (state_str != cr["state"]):
-                        continue
+                    # print(cr)
+                    # if (state_str != cr["state"]):
+                    #     continue
 
-                    if (text != '' and text in cr["Path"][-1].replace("\n", '').replace(' ', '').replace('\t', '')):
-                        for r in cr["Resources"]:
-                            if (node in UI_add):
-                                add_related_resources.add(r)
+                    # if (text != '' and text in cr["Path"][-1].replace("\n", '').replace(' ', '').replace('\t', '')):
+                    #     if policy_change == "Add":
+                    #         add_related_resources.add(tuple(cr["Resources"]))
+                    #     elif policy_change == "Delete":
+                    #         remove_related_resources.add(tuple(cr["Resources"]))
+                        # for r in cr["Resources"]:
+                            # if (node in UI_add):
+                            #     add_related_resources.add(r)
+                            # else:
+                            #     remove_related_resources.add(r)
+                            # if (node in UI_add):
+                            #     add_related_resources.add(r)
+                            # else:
+                            #     remove_related_resources.add(r)
+                    # if (content != '' and content in cr["Path"][-1].replace("\n", '').replace(' ', '').replace('\t', '')):
+                    #     if policy_change == "Add":
+                    #         add_related_resources.add(tuple(cr["Resources"]))
+                    #     elif policy_change == "Delete":
+                    #         remove_related_resources.add(tuple(cr["Resources"]))
+                        # for r in cr["Resources"]:
+                        #     if (node in UI_add):
+                        #         add_related_resources.add(r)
+                        #     else:
+                        #         remove_related_resources.add(r)
+                            
+                    for i, p in enumerate(cr["Path"]):
+                        if (desc[0] != '' and desc[0] in p.replace("\n", '').replace(' ', '').replace('\t', '')):
+                            if i<len(cr["Path"]):
+                                index = i+1
                             else:
-                                remove_related_resources.add(r)
-                            if (node in UI_add):
-                                add_related_resources.add(r)
-                            else:
-                                remove_related_resources.add(r)
-
-                    if (content != '' and content in cr["Path"][-1].replace("\n", '').replace(' ', '').replace('\t', '')):
-                        for r in cr["Resources"]:
-                            if (node in UI_add):
-                                add_related_resources.add(r)
-                            else:
-                                remove_related_resources.add(r)
+                                index = i
+                            if "Add" in policy_change:
+                                add_related_resources[cr["Path"][index]] = cr["Resources"]
+                            elif "Delete" in policy_change:
+                                remove_related_resources[cr["Path"][index]] = cr["Resources"]
+                            # for r in cr["Resources"]:
+                            #     if (node in UI_add):
+                            #         add_related_resources.add(r)
+                            #     else:
+                            #         remove_related_resources.add(r)
+                    
 
         # print(add_related_resources)
 
-        if desc == []:
+        if desc == "":
             return {
-                "Add": list(add_related_resources),
-                "Delete": list(remove_related_resources),
-                "Conf_name": desc,
+                "Add": add_related_resources,
+                "Delete": remove_related_resources,
+                "Conf_name": "",
                 "Change": "Change views without text or content_description."
             }
         else:
             return {
-                "Add": list(add_related_resources),
-                "Delete": list(remove_related_resources),
+                "Add": add_related_resources,
+                "Delete": remove_related_resources,
                 "Conf_name": desc[0],
                 "Change": policy_change
             }
