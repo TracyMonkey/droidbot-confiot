@@ -321,13 +321,6 @@ def filter_configurations(ConfigResourceMapper):
                 for v_3 in removes:
                     if (v_3 in task):
                         remove_tasks.append(task)
-            if (len(tasks) == 1):
-                if (tasks[0].strip() == '' or "lack of information" in tasks[0] or "unable to" in tasks[0]):
-                    continue
-                if (len(add_tasks) == 0 and len(remove_tasks) == 0):
-                    continue
-                FilteredConfigResourceMapper.append(c)
-                continue
             # 如果resource只有N/A或是空的
             if (len(c["Resources"]) == 0):
                 continue
@@ -335,6 +328,14 @@ def filter_configurations(ConfigResourceMapper):
                 if (c["Resources"][0].strip().replace("'", '').replace('"', '') == '' or
                         'N/A'.lower() in c["Resources"][0].lower()):
                     continue
+            if (len(tasks) == 1):
+                if (tasks[0].strip() == '' or "lack of information" in tasks[0] or "unable to" in tasks[0]):
+                    continue
+                if (len(add_tasks) == 0 and len(remove_tasks) == 0):
+                    continue
+                FilteredConfigResourceMapper.append(c)
+                continue
+
             # 如果同时有remove和add，则保留remove
             if (len(add_tasks) > 0 and len(remove_tasks) > 0):
                 c["Tasks"] = [
