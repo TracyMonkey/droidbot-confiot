@@ -16,7 +16,7 @@ from droidbot_origin.droidbot.input_event import *
 from droidbot_origin.droidbot.device import Device
 from droidbot_origin.droidbot.app import App
 from droidbot_origin.droidbot.device_state import DeviceState
-from Confiot_main.util import deprecated, DirectedGraph, Node, Edge, draw_rect_with_bounds, png_resize, UITree, query_config_resource_mapping, parse_config_resource_mapping
+from Confiot_main.util import deprecated, DirectedGraph, Node, Edge, draw_rect_with_bounds, png_resize, UITree, query_config_resource_mapping, parse_config_resource_mapping, get_ConfigResourceMapper_from_file
 from Confiot_main.settings import settings
 from Confiot_main.UIComparator import UIComparator
 
@@ -146,6 +146,7 @@ class Confiot:
         with open(output_path + "/ConfigResourceMappingResponse.txt", "w") as f:
             f.write('')
 
+        mapper = []
         for i in range(frags_size):
             paths_str = ''.join(paths_str_list[i * 20:(i + 1) * 20])
 
@@ -164,18 +165,36 @@ class Confiot:
             with open(output_path + "/ConfigResourceMappingResponse.txt", "a") as f:
                 f.write(paths_str + "\n")
                 f.write(res + "\n")
+
             if (res):
-                self.ConfigResourceMapper += parse_config_resource_mapping(res)
+                mapper += parse_config_resource_mapping(res)
 
             # if (len(self.ConfigResourceMapper) != len(paths["states"])):
             #     print("[ERR]: The Configuration paths returned from GPT are inconsistent with the origin paths!")
 
-        for i in range(len(self.ConfigResourceMapper)):
-            config_id = self.ConfigResourceMapper[i]["Id"]
-            self.ConfigResourceMapper[i]["state"] = paths["states"][config_id]
+        for m in mapper:
+            for id in m["Id"]:
+                m_with_state = {
+                    "Id": id,
+                    "Path": paths["text_paths"][id],
+                    "Tasks": m["Tasks"],
+                    "Resources": m["Resources"],
+                    "state": paths["states"][id]
+                }
+                self.ConfigResourceMapper.append(m_with_state)
+            self.FilteredConfigResourceMapper.append(self.ConfigResourceMapper[-1])
+        # for i in range(len(self.ConfigResourceMapper)):
+        #     config_id = self.ConfigResourceMapper[i]["Id"]
+        #     self.ConfigResourceMapper[i]["state"] = paths["states"][config_id]
 
         with open(output_path + "/ConfigResourceMapping.txt", 'w') as f:
             f.write(json.dumps(self.ConfigResourceMapper))
+
+        get_ConfigResourceMapper_from_file(output_path + "/ConfigResourceMapping.txt", output_path)
+
+        # with open(output_path + "/FilteredConfigResourceMapping.txt",
+        #           'w') as f:
+        #     f.write(json.dumps(self.FilteredConfigResourceMapper))
 
         print(DONE)
         return self.ConfigResourceMapper

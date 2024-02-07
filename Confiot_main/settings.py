@@ -4,7 +4,7 @@ class settings:
     # app_path = "/root/documents/droidbot-new/a2dp/a2dp.Vol_169.apk"
     # droid_output = "/root/documents/droidbot-new/a2dp/"
     app_path = "/root/documents/Output/mihome/mihome-smartscale/mihome.apk"
-    droid_output = "/root/documents/Output/mihome/mihome-smartscale/guest/result"  #"/root/documents/Output/mihome/mihome-smartscale-guest/result"
+    droid_output = "/root/documents/Output/mihome/mihome-aqarahub/guest/result/"  #"/root/documents/Output/mihome/mihome-smartscale-guest/result"
 
     Confiot_output = f"{droid_output}/Confiot"
     UI_output = Confiot_output + "/UI/"
@@ -35,7 +35,7 @@ class settings:
 
     # Huawei
     backs = ([[27, 63], [135, 171]], [[37, 164], [106, 233]])
-    precise_backs = ([[360, 684], [468, 810]],)
+    precise_backs = ([[360, 684], [468, 810]], )
 
     # 米家
     # backs = ([[30, 84], [93, 147]], [[243, 89], [804, 142]], [[813, 111], [837, 125]])

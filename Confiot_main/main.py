@@ -30,7 +30,7 @@ def HostInitialization(path=''):
     if (not os.path.exists(full_mapping_path)):
         confiot.ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
     else:
-        confiot.ConfigResourceMapper = get_ConfigResourceMapper_from_file(full_mapping_path)
+        confiot.ConfigResourceMapper = get_ConfigResourceMapper_from_file(full_mapping_path, settings.Confiot_output)
 
     if (os.path.exists(filtered_mapping_path)):
         confiot.FilteredConfigResourceMapper = get_ConfigResourceMapper_from_file(filtered_mapping_path)
@@ -47,8 +47,8 @@ def GuestInitialization():
     if (not os.path.exists(settings.Confiot_output + "/ConfigResourceMapping.txt")):
         confiot.ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
     else:
-        confiot.ConfigResourceMapper = get_ConfigResourceMapper_from_file(settings.Confiot_output +
-                                                                          "/ConfigResourceMapping.txt")
+        confiot.ConfigResourceMapper = get_ConfigResourceMapper_from_file(
+            settings.Confiot_output + "/ConfigResourceMapping.txt", settings.Confiot_output)
 
     if (os.path.exists(settings.Confiot_output + "/FilteredConfigResourceMapping.txt")):
         confiot.FilteredConfigResourceMapper = get_ConfigResourceMapper_from_file(settings.Confiot_output +
@@ -266,7 +266,7 @@ if __name__ == "__main__":
     # # HostActor = HostInitialization()
     # HostAction(None, "2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
 
-    os.environ["https_proxy"] = "http://192.168.72.1:1083"
+    os.environ["https_proxy"] = "http://192.168.63.1:1080"
     parser = OptionParser()
     parser.add_option("-a", "--app-path", dest="app_path", help="The apk path of the target application")
     parser.add_option("-d", "--device", dest="device", help="The device serial")
@@ -274,7 +274,12 @@ if __name__ == "__main__":
     parser.add_option("-H", "--host", dest="host", action="store_true", default=False, help="Host")
     parser.add_option("-G", "--guest", dest="guest", action="store_true", default=False, help="Guest")
     parser.add_option("-b", "--director", dest="director", action="store_true", default=False, help="Director Mode")
-    parser.add_option("-c", "--configuration", dest="config", help="Configuration File")
+    parser.add_option("-c",
+                      "--configuration",
+                      dest="config",
+                      action="store_true",
+                      default=False,
+                      help="Genereate configurations")
     parser.add_option("-P", "--policygeneration", dest="policy", action="store_true", default=False, help="Policy generation")
     parser.add_option("--task-point", dest="task_point", help="Configuration File")
     parser.add_option("--replay-point", dest="replay_point", help="Configuration File")
@@ -297,7 +302,9 @@ if __name__ == "__main__":
     if (options.walker_point):
         walker_point = str(options.walker_point)
 
-    if (options.host):
+    if (options.config):
+        GuestInitialization()
+    elif (options.host):
         HostActor = HostInitialization()
         HostAction(HostActor.FilteredConfigResourceMapper, task_point)
     elif (options.guest and not options.policy):

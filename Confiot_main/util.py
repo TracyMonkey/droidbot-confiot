@@ -178,6 +178,11 @@ class UITree(DirectedGraph):
         self.start_node = None
 
 
+def get_longest_task(tasks):
+    longest_string = max(tasks, key=len)
+    return longest_string
+
+
 def add_testdata_for_task(task):
     username = ["visitor", "user", "remove", "guest", "name"]
 
@@ -220,7 +225,7 @@ def add_testdata_for_task(task):
 def parse_config_resource_mapping(text):
     ConfigResourceMapper = []
 
-    pattern = re.compile(r'Action path id: (.*?)\n.*?Action path: (\[.*?\]).*?\n.*?Tasks: (.*?)\n.*?Related resources: (.*?)\n',
+    pattern = re.compile(r'Action path id: (.*?)\n.*?Action path: (.*?)\n.*?Tasks: (.*?)\n.*?Related resources: (.*?)\n',
                          re.DOTALL)
     matches = pattern.findall(text)
 
@@ -228,8 +233,8 @@ def parse_config_resource_mapping(text):
 
     for match in matches:
         try:
-            config_id = int(match[0].replace('<', '').replace('>', '').split(',')[0])
-            config_path = eval(match[1])  # 使用 eval 将字符串转为列表
+            config_id = eval(match[0].replace('<', '').replace('>', ''))
+            config_path = match[1].replace('<', '').replace('>', '')  # 使用 eval 将字符串转为列表
             task = match[2].split(">,")
             related_resources = match[3].split(',')
             related_resources = [r.strip() for r in related_resources]
@@ -277,12 +282,93 @@ def query_config_resource_mapping(prompt):
         return response.text
 
 
-def get_ConfigResourceMapper_from_file(file):
+def filter_configurations(ConfigResourceMapper):
+    FilteredConfigResourceMapper = []
+
+    resources = [
+        "Device sensor status", "Device actuator status", "Device metadata", "Device usage log",
+        "Personally Identifiable Information", "User list", "User's role", "Device list", "Automation list",
+        "Third-party services"
+    ]
+    access = ['view', 'access', 'retrieve', 'open', 'obtain', 'read', 'inspect']
+    adds = ['add', 'include', 'append', 'insert', 'attach', 'incorporate', 'integrate', 'augment', 'expand', 'combine']
+    removes = ["set", "edit", "modify", "change", "configure", "remove", "erase", "delete", "eliminate", "replace", "clear"]
+
+    norepeat_mapper = []
+    norepeat_tasks = []
+    for c in ConfigResourceMapper[::-1]:
+        if (c["Tasks"] not in norepeat_tasks):
+            norepeat_mapper.append(c)
+            norepeat_tasks.append(c["Tasks"])
+
+    for c in norepeat_mapper:
+        tasks = c["Tasks"]
+
+        if (len(tasks) < 1):
+            continue
+        else:
+            access_tasks = []
+            add_tasks = []
+            remove_tasks = []
+            for task in tasks:
+                task = task.lower()
+                for v_1 in access:
+                    if (v_1 in task):
+                        access_tasks.append(task)
+                for v_2 in adds:
+                    if (v_2 in task):
+                        add_tasks.append(task)
+                for v_3 in removes:
+                    if (v_3 in task):
+                        remove_tasks.append(task)
+            if (len(tasks) == 1):
+                if (tasks[0].strip() == '' or "lack of information" in tasks[0] or "unable to" in tasks[0]):
+                    continue
+                if (len(add_tasks) == 0 and len(remove_tasks) == 0):
+                    continue
+                FilteredConfigResourceMapper.append(c)
+                continue
+            # 如果resource只有N/A或是空的
+            if (len(c["Resources"]) == 0):
+                continue
+            elif (len(c["Resources"]) == 1):
+                if (c["Resources"][0].strip().replace("'", '').replace('"', '') == '' or
+                        'N/A'.lower() in c["Resources"][0].lower()):
+                    continue
+            # 如果同时有remove和add，则保留remove
+            if (len(add_tasks) > 0 and len(remove_tasks) > 0):
+                c["Tasks"] = [
+                    get_longest_task(remove_tasks),
+                ]
+                FilteredConfigResourceMapper.append(c)
+            elif (len(add_tasks) > 0):
+                c["Tasks"] = [
+                    get_longest_task(add_tasks),
+                ]
+                FilteredConfigResourceMapper.append(c)
+            elif (len(remove_tasks) > 0):
+                c["Tasks"] = [
+                    get_longest_task(remove_tasks),
+                ]
+                FilteredConfigResourceMapper.append(c)
+            else:
+                c["Tasks"] = [
+                    get_longest_task(tasks),
+                ]
+                FilteredConfigResourceMapper.append(c)
+    return FilteredConfigResourceMapper
+
+
+def get_ConfigResourceMapper_from_file(file, dir=None):
     content = ''
     with open(file, 'r') as f:
         content = f.read()
 
     ConfigResourceMapper = json.loads(content)
+    if ("FilteredConfigResourceMapping" not in file and dir):
+        ConfigResourceMapper = filter_configurations(ConfigResourceMapper)
+        with open(dir + "/FilteredConfigResourceMapping.txt", 'w') as f:
+            f.write(json.dumps(ConfigResourceMapper))
     return ConfigResourceMapper
 
 

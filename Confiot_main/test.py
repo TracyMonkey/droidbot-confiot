@@ -86,7 +86,8 @@ def test_xml_parse():
     after_root = after_xml.getroot()
 
     print("[DBG]: Find config in bounds: ", config_bounds)
-    before_config_node = before_root.findall(f".//*[@bounds='{config_bounds}']")
+    before_config_node = before_root.findall(
+        f".//*[@bounds='{config_bounds}']")
     after_config_node = after_root.findall(f".//*[@bounds='{config_bounds}']")
 
     # 打印相关的node元素
@@ -112,7 +113,8 @@ def check_nearby_rectangles(rectangle, target_rectangle, threshold):
     center_x = (rectangle[0][0] + rectangle[1][0]) / 2
     center_y = (rectangle[0][1] + rectangle[1][1]) / 2
 
-    distance = math.sqrt((center_x - target_center_x)**2 + (center_y - target_center_y)**2)
+    distance = math.sqrt((center_x - target_center_x)**2 +
+                         (center_y - target_center_y)**2)
     print(distance)
     if distance < threshold:
         return True
@@ -160,7 +162,9 @@ def test_get_ui_hierarchy():
     confiot = ConfiotHost()
     confiot.device_connect()
     while (input() != '1'):
-        confiot.device_get_UIElement("", "", "/root/documents/droidbot-confiot/Confiot_main/", "output.json")
+        confiot.device_get_UIElement(
+            "", "", "/root/documents/droidbot-confiot/Confiot_main/",
+            "output.json")
 
     # while(input() != '1'):
     #     a= confiot.device.get_views()
@@ -176,7 +180,7 @@ def test_mapping_uitree():
     from Confiot_main.util import query_config_resource_mapping, parse_config_resource_mapping, get_ConfigResourceMapper_from_file
     settings.device_serial = "192.168.31.218:5555"
     settings.app_path = "/root/documents/Output/Huawei_AI_Life/Huawei.apk"
-    settings.droid_output = "/root/documents/Output/August/guest"
+    settings.droid_output = "/root/documents/Output/mihome/mihome-aqarahub/guest/result/"
 
     confiot = Confiot()
     policy_generator = PolicyGenerator()
@@ -186,9 +190,10 @@ def test_mapping_uitree():
 
     os.environ["https_proxy"] = "http://192.168.72.1:1083"
     # 请求GPT
-    ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
+    #ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
     # 使用文件读取mapper测试
-    # ConfigResourceMapper = get_ConfigResourceMapper_from_file(settings.Confiot_output + "/ConfigResourceMapping.txt")
+    ConfigResourceMapper = get_ConfigResourceMapper_from_file(
+        settings.Confiot_output + "/FilteredConfigResourceMapping.txt")
 
     # policy_generator.Policy_generate_1("host_august_Edit_house_owner_not_check", "host_august_Edit_house_owner_check",
     #                                    "51b1b582e9a5351503e9f7a195ce1f9e4674ccdf38cb61c00d4b6eac163a9a2c", ConfigResourceMapper)
