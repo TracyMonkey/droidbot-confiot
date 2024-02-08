@@ -235,7 +235,12 @@ def parse_config_resource_mapping(text):
         try:
             config_id = eval(match[0].replace('<', '').replace('>', ''))
             config_path = match[1].replace('<', '').replace('>', '')  # 使用 eval 将字符串转为列表
-            task = match[2].split(">,")
+            if ("<" in match[2] and ">" in match[2]):
+                task = match[2].split(">,")
+            elif ("\n" in match[2]):
+                task = match[2].split("\n")
+            else:
+                task = match[2].split(",")
             related_resources = match[3].split(',')
             related_resources = [r.strip() for r in related_resources]
 
@@ -292,7 +297,9 @@ def filter_configurations(ConfigResourceMapper):
     ]
     access = ['view', 'access', 'retrieve', 'open', 'obtain', 'read', 'inspect']
     adds = ['add', 'include', 'append', 'insert', 'attach', 'incorporate', 'integrate', 'augment', 'expand', 'combine']
-    removes = ["set", "edit", "modify", "change", "configure", "remove", "erase", "delete", "eliminate", "replace", "clear"]
+    removes = [
+        "initiate", "set", "edit", "modify", "change", "configure", "remove", "erase", "delete", "eliminate", "replace", "clear"
+    ]
 
     norepeat_mapper = []
     norepeat_tasks = []
