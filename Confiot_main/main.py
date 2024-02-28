@@ -266,7 +266,6 @@ if __name__ == "__main__":
     # # HostActor = HostInitialization()
     # HostAction(None, "2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
 
-    os.environ["https_proxy"] = "http://192.168.72.1:1083"
     parser = OptionParser()
     parser.add_option("-a", "--app-path", dest="app_path", help="The apk path of the target application")
     parser.add_option("-d", "--device", dest="device", help="The device serial")
@@ -281,6 +280,7 @@ if __name__ == "__main__":
                       default=False,
                       help="Genereate configurations")
     parser.add_option("-P", "--policygeneration", dest="policy", action="store_true", default=False, help="Policy generation")
+    parser.add_option("--proxy", dest="proxy", help="HTTPS Proxy")
     parser.add_option("--task-point", dest="task_point", help="Configuration File")
     parser.add_option("--replay-point", dest="replay_point", help="Configuration File")
     parser.add_option("--walker-point", dest="walker_point", help="Configuration File")
@@ -288,6 +288,8 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     s = settings(options.device, options.app_path, options.droid_output)
+
+    os.environ["https_proxy"] = options.proxy
 
     HostActor = None
     GuestActor = None
