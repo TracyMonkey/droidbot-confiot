@@ -296,9 +296,10 @@ def filter_configurations(ConfigResourceMapper):
         "Third-party services"
     ]
     access = ['view', 'access', 'retrieve', 'open', 'obtain', 'read', 'inspect']
-    adds = ['add', 'include', 'append', 'insert', 'attach', 'incorporate', 'integrate', 'augment', 'expand', 'combine']
+    adds = ['add ', 'include', 'append', 'insert', 'attach', 'incorporate', 'integrate', 'augment', 'expand', 'combine']
     removes = [
-        "initiate", "set", "edit", "modify", "change", "configure", "remove", "erase", "delete", "eliminate", "replace", "clear"
+        "initiate", "set ", "edit", "modify", "change", "configure", "remove", "erase", "delete", "eliminate", "replace",
+        "clear"
     ]
 
     norepeat_mapper = []
@@ -359,6 +360,8 @@ def filter_configurations(ConfigResourceMapper):
                     get_longest_task(remove_tasks),
                 ]
                 FilteredConfigResourceMapper.append(c)
+            elif (len(add_tasks) == 0 and len(remove_tasks) == 0):
+                continue
             else:
                 c["Tasks"] = [
                     get_longest_task(tasks),
@@ -374,9 +377,9 @@ def get_ConfigResourceMapper_from_file(file, dir=None):
 
     ConfigResourceMapper = json.loads(content)
     if ("FilteredConfigResourceMapping" not in file and dir):
-        ConfigResourceMapper = filter_configurations(ConfigResourceMapper)
+        FilteredConfigResourceMapper = filter_configurations(ConfigResourceMapper)
         with open(dir + "/FilteredConfigResourceMapping.txt", 'w') as f:
-            f.write(json.dumps(ConfigResourceMapper))
+            f.write(json.dumps(FilteredConfigResourceMapper))
     return ConfigResourceMapper
 
 

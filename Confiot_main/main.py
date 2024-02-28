@@ -266,7 +266,7 @@ if __name__ == "__main__":
     # # HostActor = HostInitialization()
     # HostAction(None, "2. Remove an alarm", "015ba3ec79e0b0f55a19ce31bbc72b503e56184e14e0cef46ad942d8d357f489")
 
-    os.environ["https_proxy"] = "http://192.168.63.1:1080"
+    os.environ["https_proxy"] = "http://192.168.72.1:1083"
     parser = OptionParser()
     parser.add_option("-a", "--app-path", dest="app_path", help="The apk path of the target application")
     parser.add_option("-d", "--device", dest="device", help="The device serial")
