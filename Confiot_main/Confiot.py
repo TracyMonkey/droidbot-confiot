@@ -904,21 +904,31 @@ class ConfiotGuest(Confiot):
 '''
         print(STEP2)
 
-        target_states = []
+        related_confs = []
+
+        states_in_mapper = []
+        for m in self.ConfigResourceMapper:
+            states_in_mapper.append(m['state'])
+
         for conf in self.conf_list:
+            if (conf["from_state"] in states_in_mapper or conf["to_state"] in states_in_mapper):
+                related_confs.append(conf)
+
+        target_states = []
+        for conf in related_confs:
             if (conf["to_state"] in target_states):
                 continue
             else:
                 target_states.append(conf["to_state"])
             enabled = self.device_guest_config_test(host_analyzing_config, conf)
-            if (not enabled):
-                infl = {}
-                infl["id"] = len(self.conf_list)
-                infl["influenceType"] = settings.CONFIG_DISABLED
-                infl["content"] = {}
-                infl["content"]["view"] = conf["view_images"]
-                infl["content"]["state"] = conf["from_state"]
-                self.result.append(infl)
+            # if (not enabled):
+            #     infl = {}
+            #     infl["id"] = len(self.conf_list)
+            #     infl["influenceType"] = settings.CONFIG_DISABLED
+            #     infl["content"] = {}
+            #     infl["content"]["view"] = conf["view_images"]
+            #     infl["content"]["state"] = conf["from_state"]
+            #     self.result.append(infl)
         print(DONE)
 
     # analyze the state transition screenshots of the configs in conf_list with gpt
