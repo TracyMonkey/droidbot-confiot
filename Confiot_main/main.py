@@ -87,14 +87,12 @@ def HostRunTask(task, task_state):
 
 
 # point用于断点继续开始, replay_point:state_str, walker_point:view_2fb7d047fc22be5efccfd0fa9c96be7b.jpg121
-def GuestRunAnalysis(host_analyzing_config="", replay_point='', walker_point=''):
+def GuestRunAnalysis(host_analyzing_config="", related_resources=None):
     actor = GuestInitialization()
     actor.device_connect()
-    if (walker_point != ''):
-        actor.device_guest_config_walker(host_analyzing_config, walker_point)
-    else:
-        actor.device_state_replay(host_analyzing_config, replay_point)
-        actor.device_guest_config_walker(host_analyzing_config, walker_point)
+
+    actor.device_state_replay(host_analyzing_config, related_resources)
+    actor.device_guest_config_walker(host_analyzing_config, related_resources)
     actor.device.disconnect()
 
 
@@ -112,14 +110,14 @@ def HostAction(hosttasks, task_point=''):
                 continue
 
 
-def GuestAction(hosttasks, task_point='', replay_point='', walker_point=''):
+def GuestAction(hosttasks, task_point=''):
     # 主人开始task list中的任务
     tasks = hosttasks
 
     if (task_point == ''):
         # 对于每条path代表的所有task进行前，完成一遍GuestRunAnalysis
         host_analyzing_config = "000"
-        GuestRunAnalysis(host_analyzing_config, replay_point, walker_point)
+        GuestRunAnalysis(host_analyzing_config)
 
     begin_flag = False
 
@@ -143,7 +141,7 @@ def GuestAction(hosttasks, task_point='', replay_point='', walker_point=''):
                 # HostRunTask(host, t)
                 input()
                 # 客人进行app分析
-                GuestRunAnalysis(host_analyzing_config, replay_point, walker_point)
+                GuestRunAnalysis(host_analyzing_config, task["Resources"])
 
 
 # Infer Policy through UI Hierarchy comparison
@@ -282,9 +280,6 @@ if __name__ == "__main__":
     parser.add_option("-P", "--policygeneration", dest="policy", action="store_true", default=False, help="Policy generation")
     parser.add_option("--proxy", dest="proxy", help="HTTPS Proxy")
     parser.add_option("--task-point", dest="task_point", help="Configuration File")
-    parser.add_option("--replay-point", dest="replay_point", help="Configuration File")
-    parser.add_option("--walker-point", dest="walker_point", help="Configuration File")
-
     (options, args) = parser.parse_args()
 
     s = settings(options.device, options.app_path, options.droid_output)
@@ -295,14 +290,8 @@ if __name__ == "__main__":
     GuestActor = None
 
     task_point = ''
-    replay_point = ''
-    walker_point = ''
     if (options.task_point):
         task_point = str(options.task_point)
-    if (options.replay_point):
-        replay_point = str(options.replay_point)
-    if (options.walker_point):
-        walker_point = str(options.walker_point)
 
     if (options.config):
         GuestInitialization()
@@ -315,10 +304,7 @@ if __name__ == "__main__":
             "guest" in options.droid_output) else options.droid_output + "/../../guest/result/Confiot"
         # print(HostConfiotPath)
         HostActor = HostInitialization(path=HostConfiotPath)
-        GuestAction(HostActor.FilteredConfigResourceMapper,
-                    task_point=task_point,
-                    replay_point=replay_point,
-                    walker_point=walker_point)
+        GuestAction(HostActor.FilteredConfigResourceMapper, task_point=task_point)
     elif (options.guest and options.policy):
         GuestActor = GuestInitialization()
         HostConfiotPath = options.droid_output + "/../../host/result/Confiot" if "guest" in options.droid_output else options.droid_output + "/../../guest/result/Confiot"

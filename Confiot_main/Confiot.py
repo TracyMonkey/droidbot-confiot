@@ -34,7 +34,7 @@ class Confiot:
         self.app: App = None
         self.utg_graph: DirectedGraph = None
         self.uiTree: UITree = None
-        # [{"Path": config_path, "Task": task, "Resources": related_resources, "state":state_str}]
+        # [{"Id": config_id, "Path": config_path, "Tasks": task, "Resources": related_resources, "state":state_str}]
         self.ConfigResourceMapper = []
         self.FilteredConfigResourceMapper = []
 
@@ -863,7 +863,7 @@ class ConfiotGuest(Confiot):
         super().__init__()
 
     # walk through all states and store the UI hierachy in UI/
-    def device_state_replay(self, host_analyzing_config: str, replay_point=''):
+    def device_state_replay(self, host_analyzing_config: str, related_resources=None):
         STEP1 = '''
 ###################################
 ### Traverse static UI states #####
@@ -873,23 +873,20 @@ class ConfiotGuest(Confiot):
 
         begin_flag = False
 
-        if (replay_point == ''):
-            begin_flag = True
-        for node in self.utg_graph.nodes:
-            if (replay_point != '' and not begin_flag):
-                if (node.name == replay_point):
-                    begin_flag = True
-                else:
-                    continue
-            if (begin_flag):
-                finished = self.device_to_state(host_analyzing_config, node.name)
-                if (finished):
-                    self.device_get_UIElement(host_analyzing_config, node.name)
+        # 过滤与realted_resources无关的state replay
+        related_states = set()
+        for m in self.ConfigResourceMapper:
+            related_states.add(m['state'])
+
+        for s in related_states:
+            finished = self.device_to_state(host_analyzing_config, s)
+            if (finished):
+                self.device_get_UIElement(host_analyzing_config, s)
 
         print(DONE)
 
     # get all configurations list and test them one by one
-    def device_guest_config_walker(self, host_analyzing_config: str, walker_point=''):
+    def device_guest_config_walker(self, host_analyzing_config: str, related_resources=None):
         # test all configs in conf_list and genreate UI hierachy and screenshots
         STEP2 = '''
 ###################################
@@ -898,32 +895,21 @@ class ConfiotGuest(Confiot):
 '''
         print(STEP2)
 
-        begin_flag = False
-
-        if (walker_point == ''):
-            begin_flag = True
-
         target_states = []
         for conf in self.conf_list:
-            if (walker_point != '' and not begin_flag):
-                if (conf["view_images"] + str(conf["event_id"]) == walker_point):
-                    begin_flag = True
-                else:
-                    continue
-            if (begin_flag):
-                if (conf["to_state"] in target_states):
-                    continue
-                else:
-                    target_states.append(conf["to_state"])
-                enabled = self.device_guest_config_test(host_analyzing_config, conf)
-                if (not enabled):
-                    infl = {}
-                    infl["id"] = len(self.conf_list)
-                    infl["influenceType"] = settings.CONFIG_DISABLED
-                    infl["content"] = {}
-                    infl["content"]["view"] = conf["view_images"]
-                    infl["content"]["state"] = conf["from_state"]
-                    self.result.append(infl)
+            if (conf["to_state"] in target_states):
+                continue
+            else:
+                target_states.append(conf["to_state"])
+            enabled = self.device_guest_config_test(host_analyzing_config, conf)
+            if (not enabled):
+                infl = {}
+                infl["id"] = len(self.conf_list)
+                infl["influenceType"] = settings.CONFIG_DISABLED
+                infl["content"] = {}
+                infl["content"]["view"] = conf["view_images"]
+                infl["content"]["state"] = conf["from_state"]
+                self.result.append(infl)
         print(DONE)
 
     # analyze the state transition screenshots of the configs in conf_list with gpt

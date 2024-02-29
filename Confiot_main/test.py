@@ -86,8 +86,7 @@ def test_xml_parse():
     after_root = after_xml.getroot()
 
     print("[DBG]: Find config in bounds: ", config_bounds)
-    before_config_node = before_root.findall(
-        f".//*[@bounds='{config_bounds}']")
+    before_config_node = before_root.findall(f".//*[@bounds='{config_bounds}']")
     after_config_node = after_root.findall(f".//*[@bounds='{config_bounds}']")
 
     # 打印相关的node元素
@@ -113,8 +112,7 @@ def check_nearby_rectangles(rectangle, target_rectangle, threshold):
     center_x = (rectangle[0][0] + rectangle[1][0]) / 2
     center_y = (rectangle[0][1] + rectangle[1][1]) / 2
 
-    distance = math.sqrt((center_x - target_center_x)**2 +
-                         (center_y - target_center_y)**2)
+    distance = math.sqrt((center_x - target_center_x)**2 + (center_y - target_center_y)**2)
     print(distance)
     if distance < threshold:
         return True
@@ -162,9 +160,7 @@ def test_get_ui_hierarchy():
     confiot = ConfiotHost()
     confiot.device_connect()
     while (input() != '1'):
-        confiot.device_get_UIElement(
-            "", "", "/root/documents/droidbot-confiot/Confiot_main/",
-            "output.json")
+        confiot.device_get_UIElement("", "", "/root/documents/droidbot-confiot/Confiot_main/", "output.json")
 
     # while(input() != '1'):
     #     a= confiot.device.get_views()
@@ -192,8 +188,7 @@ def test_mapping_uitree():
     # 请求GPT
     #ConfigResourceMapper = confiot.device_map_config_resource(settings.Confiot_output)
     # 使用文件读取mapper测试
-    ConfigResourceMapper = get_ConfigResourceMapper_from_file(
-        settings.Confiot_output + "/FilteredConfigResourceMapping.txt")
+    ConfigResourceMapper = get_ConfigResourceMapper_from_file(settings.Confiot_output + "/FilteredConfigResourceMapping.txt")
 
     # policy_generator.Policy_generate_1("host_august_Edit_house_owner_not_check", "host_august_Edit_house_owner_check",
     #                                    "51b1b582e9a5351503e9f7a195ce1f9e4674ccdf38cb61c00d4b6eac163a9a2c", ConfigResourceMapper)
