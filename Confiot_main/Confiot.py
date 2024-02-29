@@ -876,7 +876,16 @@ class ConfiotGuest(Confiot):
         # 过滤与realted_resources无关的state replay
         related_states = set()
         for m in self.ConfigResourceMapper:
-            related_states.add(m['state'])
+            flag = False
+            if (related_resources is None):
+                flag = True
+            else:
+                for r in related_resources:
+                    if (r in m['Resources']):
+                        flag = True
+                        break
+            if (flag):
+                related_states.add(m['state'])
 
         for s in related_states:
             finished = self.device_to_state(host_analyzing_config, s)

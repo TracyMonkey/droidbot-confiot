@@ -284,14 +284,14 @@ if __name__ == "__main__":
 
     s = settings(options.device, options.app_path, options.droid_output)
 
-    os.environ["https_proxy"] = options.proxy
-
     HostActor = None
     GuestActor = None
 
     task_point = ''
     if (options.task_point):
         task_point = str(options.task_point)
+    if (options.proxy):
+        os.environ["https_proxy"] = options.proxy
 
     if (options.config):
         GuestInitialization()
