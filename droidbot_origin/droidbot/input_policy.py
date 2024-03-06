@@ -434,6 +434,7 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
         # syncxxx 过滤webview
         act = current_state.foreground_activity
         act = act.lower()
+
         if ("webview" in act):
             possible_events = []
         else:
