@@ -566,7 +566,9 @@ class DeviceState(object):
         # Tuya所有view都clickable=false
         if (len(possible_events) == 0):
             for view_id in enabled_view_ids:
-                if self.__safe_dict_get(self.views[view_id], 'class') == "android.widget.FrameLayout":
+                if self.__safe_dict_get(self.views[view_id], 'class') == "android.widget.FrameLayout" or self.__safe_dict_get(
+                        self.views[view_id], 'class') == "android.widget.ViewGroup" or self.__safe_dict_get(
+                            self.views[view_id], 'class') == "android.widget.LinearLayout":
                     continue
                 possible_events.append(TouchEvent(view=self.views[view_id]))
                 touch_exclude_view_ids.add(view_id)
