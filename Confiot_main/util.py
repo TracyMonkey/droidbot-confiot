@@ -195,7 +195,7 @@ def add_testdata_for_task(task):
 
     log = ["records", "log"]
 
-    automation = ["automation"]
+    automation = ["automation", "timer"]
 
     result = task
     for key in username:
