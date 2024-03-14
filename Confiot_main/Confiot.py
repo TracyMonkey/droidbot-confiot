@@ -877,7 +877,7 @@ class ConfiotGuest(Confiot):
         related_states = set()
         for m in self.ConfigResourceMapper:
             flag = False
-            if (related_resources is None):
+            if (related_resources is None or related_resources == []):
                 flag = True
             else:
                 for r in related_resources:

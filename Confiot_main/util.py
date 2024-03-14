@@ -212,7 +212,7 @@ def add_testdata_for_task(task):
 
     for i in automation:
         if (i in task.lower()):
-            result = result + ", with the name `TESTAutomation` and the task: Play music in 1 minute."
+            result = result + ", with the name `TESTAutomation` and the task: Activate it in 1 minute."
 
     for key in testdata:
         if (key in task.lower()):
@@ -376,7 +376,11 @@ def get_ConfigResourceMapper_from_file(file, dir=None):
         content = f.read()
 
     ConfigResourceMapper = json.loads(content)
-    if ("FilteredConfigResourceMapping" not in file and dir):
+    filtered_mapping_path = ''
+    if (dir):
+        filtered_mapping_path = dir + "/FilteredConfigResourceMapping.txt"
+    if ("FilteredConfigResourceMapping" not in file and filtered_mapping_path != '' and
+            not os.path.exists(filtered_mapping_path)):
         FilteredConfigResourceMapper = filter_configurations(ConfigResourceMapper)
         with open(dir + "/FilteredConfigResourceMapping.txt", 'w') as f:
             f.write(json.dumps(FilteredConfigResourceMapper))
