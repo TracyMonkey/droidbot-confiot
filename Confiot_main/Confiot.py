@@ -135,7 +135,7 @@ class Confiot:
 
         paths_str_list = []
         paths_frags = []
-        frags_size = len(paths["text_paths"]) // 20
+        frags_size = (len(paths["text_paths"]) // 20) + 1
         id = 0
         for p in paths["text_paths"]:
             p_str = "\",\"".join(p)
@@ -148,7 +148,10 @@ class Confiot:
 
         mapper = []
         for i in range(frags_size):
-            paths_str = ''.join(paths_str_list[i * 20:(i + 1) * 20])
+            if(i == frags_size - 1):
+                paths_str = ''.join(paths_str_list[i * 20:])
+            else:
+                paths_str = ''.join(paths_str_list[i * 20:(i + 1) * 20])
 
             prompt = ''
             with open(BASE_DIR + "/prompt/ConfigResourceMapping.txt") as f:
