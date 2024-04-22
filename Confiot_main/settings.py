@@ -45,7 +45,23 @@ class settings:
     # precise_backs = ()
 
     # amazon alexa
-    backs = ([[58,147],[127,216]],)
+    # backs = ([[58,147],[127,216]],)
+    # precise_backs = ()
+
+    # XIAOAI
+
+    # backs = ([[865,118],[950,184]],[[961,118],[1046,184]])
+    # precise_backs = ()
+
+    # Philips
+
+    # backs = ([[0,54],[126,158]],)
+    # precise_backs = ()
+
+
+    # Mihome router
+
+    backs = ([[32,84],[95,147]],)
     precise_backs = ()
 
     def __init__(self, device, app_path, droid_output) -> None:
