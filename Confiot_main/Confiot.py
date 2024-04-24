@@ -603,7 +603,6 @@ class Confiot:
                                 self.uiTree.nodes_dict[config_id] = n
                                 event_config[event_str] = n
                                 self.uiTree.add_node(n)
-                                self.uiTree.start_node = config_id
                             else:
                                 event_config[event_str] = self.uiTree.nodes_dict[config_id]
                                 config_nodes[src_state].append(self.uiTree.nodes_dict[config_id])
@@ -631,21 +630,22 @@ class Confiot:
         # self.uiTree.nodes_dict["000"] = start_node
         # self.uiTree.add_node(start_node)
 
-        # for n in indegree:
-        #     if (indegree[n] == 0):
-        #         e = Edge(start_node, n, [])
-        #         self.uiTree.add_edge(e)
+        start_nodes = []
+        for n in indegree:
+            if (indegree[n] == 0):
+                start_nodes.append(n)
 
         # print("[DBG]: UITree start node:", start_node)
         UITree.draw(self.uiTree, settings.Confiot_output)
 
         config_paths = []
-        for n in self.uiTree.nodes:
-            p = self.uiTree.find_shortest_path(self.uiTree.start_node, n.name)
-            if (not p or p == []):
-                continue
-            # p = [i.description for i in p]
-            config_paths.append(p)
+        for s in start_nodes:
+            for n in self.uiTree.nodes:
+                p = self.uiTree.find_shortest_path(s.name, n.name)
+                if (not p or p == []):
+                    continue
+                # p = [i.description for i in p]
+                config_paths.append(p)
 
         return config_paths
 
