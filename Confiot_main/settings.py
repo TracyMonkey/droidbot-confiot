@@ -31,16 +31,19 @@ class settings:
     bounds_map = {}
     parent_map = {}
     # 仅仅只允许同一个center point的view被点击{bounds_limit}次
-    bounds_limit = 30
-    parent_limit = 30
+    bounds_limit = 3
+    parent_limit = 10
 
     ##### BackButton ######
     # backs: 匹配中心点举例backs坐标50 pixel距离的views
     # precise_backs: 精准匹配某些views
 
+    # backs = ([[27, 88], [86, 146]],)
+    # precise_backs = ()
+
     # Huawei
-    backs = ([[27, 63], [135, 171]], [[37, 164], [106, 233]])
-    precise_backs = ([[360, 684], [468, 810]],)
+    # backs = ([[27, 63], [135, 171]], [[37, 164], [106, 233]])
+    # precise_backs = ([[360, 684], [468, 810]], )
 
     # 米家
     # # backs = ()
@@ -56,6 +59,26 @@ class settings:
     backs = ([[216,2223],[432,2400]], [[432,2223],[648,2400]], [[648,2223],[864,2400]])
     # backs = ([[30, 84], [93, 147]], [[243, 89], [804, 142]], [[813, 111], [837, 125]])
     # precise_backs = ()
+
+    # amazon alexa
+    # backs = ([[58,147],[127,216]],)
+    # precise_backs = ()
+
+    # XIAOAI
+
+    # backs = ([[865,118],[950,184]],[[961,118],[1046,184]])
+    # precise_backs = ()
+
+    # Philips
+
+    # backs = ([[0,54],[126,158]],)
+    # precise_backs = ()
+
+
+    # Mihome router
+
+    backs = ([[32,84],[95,147]],)
+    precise_backs = ()
 
     def __init__(self, device, app_path, droid_output) -> None:
         settings.device_serial = device
