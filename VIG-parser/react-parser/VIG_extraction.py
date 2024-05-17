@@ -1,75 +1,104 @@
 import re
+import sys, os
+import tree_sitter_javascript as tsjavascript
+from tree_sitter import Language, Parser, Node
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+class ASTParser:
 
-# {
-#     id: {
-#         "raw": "",
-#         "dependencies": [id1, id2, id3, ...],
-#         "elements": {
-#             eid: {
-#                 "type": "",
-#                 "text": "",
-#             }
-#         },
-#         "navigations": {
-#             nid: {
-#                 "type": "",
-#                 "text": "",
-#             }
-#         },
-#     }
-# }
-resources = {}
+    def __init__(self, plugin_file):
+        # {
+        #     id: {
+        #         "node": None,
+        #         "raw": "",
+        #         "dependencies": [id1, id2, id3, ...],
+        #         "elements": {
+        #             eid: {
+        #                 "type": "",
+        #                 "text": "",
+        #             }
+        #         },
+        #         "navigations": {
+        #             nid: {
+        #                 "type": "",
+        #                 "text": "",
+        #             }
+        #         },
+        #     }
+        # }
+        self.resources = {}
+        self.plugin_file = plugin_file
+        self.raw_code = None
 
+        self.PY_LANGUAGE = Language(tsjavascript.language())
+        self.parser = Parser(self.PY_LANGUAGE)
 
-#  __d(...); to be a resource
-# __d(function (global, _$$_REQUIRE, _$$_IMPORT_DEFAULT, _$$_IMPORT_ALL, module, exports, _dependencyMap) {
-#     var _interopRequireDefault = _$$_REQUIRE(_dependencyMap[0]);
-#     var _miot = _$$_REQUIRE(_dependencyMap[1]);
-#     var _src = _interopRequireDefault(_$$_REQUIRE(_dependencyMap[2]));
-#     _miot.Package.entry(_src.default, function () {
-#         console.disableYellowBox = function () { };
-#     });
-# }, 10001, [14305, 10074, 10004]);
-# Note: 部分resource_id 不存在，如_reactNative, 可能是import的库
-def get_resources(s):
-    match = re.findall(r'__d\((.*?,[ ]?(\d+),[ ]?\[(.*?)\].*?)\);', s,re.DOTALL)
-    if match:
-        for r in match:
-            raw = r[0]
-            id = int(r[1])
-            dependencies = list(map(int, [i for i in r[1].split(',') if i.strip() != '']))
-            resources[id]["raw"] = raw
-            resources[id]["dependencies"] = dependencies
-        return resources
-    return None
+        code = None
+        with open(self.plugin_file, "r", encoding="utf-8") as f:
+            code = f.read().encode('utf-8')
+        if (code):
+            self.raw_code = code
 
-# 获取每个resource对应的elements（递归查询），以及相应的type、text
-def get_elements(resouce_id):
-    raw = resources[resouce_id]["raw"]
-    elements = {}
-    eid = 0
+    def start_parser(self):
+        self.get_resources()
+        for id in self.resources:
+            self.resources[id]["node"] = self.init_tree_sitter(self.resources[id]["raw"])
 
-    match = re.findall(r'createElement\(.*?,[ ]?()', raw,re.DOTALL)
+    def init_tree_sitter(self, raw) -> Node:
+        tree = self.parser.parse(raw.encode('utf-8'))
+        return tree.root_node
 
+    # Note: 部分resource_id 不存在，如_reactNative, 可能是import的库
+    def get_resources(self):
+        match = re.findall(r'__d\((.*?,[ ]?(\d+),[ ]?\[(.*?)\].*?)\);', self.raw_code.decode(), re.DOTALL)
+        if match:
+            for r in match:
+                raw = r[0]
+                id = int(r[1])
+                dependencies = list(map(int, [i for i in r[1].split(',') if i.strip() != '']))
+                self.resources[id] = {}
+                self.resources[id]["raw"] = raw
+                self.resources[id]["dependencies"] = dependencies
+            return self.resources
+        return None
 
+    def query(self, query, node):
+        q = self.PY_LANGUAGE.query(query)
+        matches = q.matches(node)
+        return matches
 
+    # 获取每个resource对应的elements（递归查询），以及相应的type、text
+    def get_elements(self, resouce_id):
+        query = """
+        (call_expression
+            function: [
+                ((identifier) @function (#match? @function ".*createElement"))
+                (member_expression property: ((property_identifier) @function (#match? @function ".*createElement")))
+                ]
+            .
+            arguments: (arguments . (_) @element_type . (_) @element_options . (_)*)
+        )
+            """
+        node = self.resources[resouce_id]["node"]
+        elements = {}
+        eid = 0
 
+        matches = self.query(query, node)
+        print(matches)
 
-def get_navigations(resouce_id):
-    raw = resources[resouce_id]["raw"]
+    def get_navigations(self, resouce_id):
+        raw = self.resources[resouce_id]["raw"]
 
-    pass
+        pass
 
-
-# 获取每个resource内的interactions
-def get_interactions(s):
-    pass
+    # 获取每个resource内的interactions
+    def get_interactions(s):
+        pass
 
 
 if __name__ == '__main__':
-    with open('main.bundle', 'r', encoding='utf-8') as file:
-        data = file.read()
-        print(get_resources(data))
-
+    parser = ASTParser(BASE_DIR + "/javascript/main.bundle")
+    parser.start_parser()
+    parser.get_elements(10001)
