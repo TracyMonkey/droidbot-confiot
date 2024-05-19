@@ -2,8 +2,13 @@ import re
 import sys, os
 import tree_sitter_javascript as tsjavascript
 from tree_sitter import Language, Parser, Node
+from xml.dom import minidom
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+sys.path.append(BASE_DIR + "/../../")
+
+from util import *
 
 
 class ASTParser:
@@ -86,8 +91,28 @@ class ASTParser:
         matches = q.matches(node)
         return matches
 
+    def Node_to_XML(self, node):
+        dom = minidom.Document()
+        root_node = dom.createElement('UIHierarchy')
+        dom.appendChild(root_node)
+
+    def get_text_from_element(self, options, Paras):
+        results = {}
+        # 1. 通过options获取
+        match = re.findall(r'(title|text|name|message):\s*([\'"])(.*?)\2', decode_bytes(options), re.DOTALL)
+        for m in match:
+            if (len(m) == 3):
+                results[m[0]] = m[2]
+
+        # 2. 通过Paras获取
+        for p in Paras:
+            if (p.type == "string"):
+                results["textElement"] = decode_bytes(p.text.replace(b'"', b'').replace(b"'", b''))
+
+        return results
+
     # 获取每个resource对应的elements（递归查询），以及相应的type、text
-    def get_elements(self, resource_id):
+    def get_elements(self, node):
         query = """
         (call_expression
             function: [
@@ -95,25 +120,68 @@ class ASTParser:
                 (member_expression property: ((property_identifier) @function (#match? @function ".*createElement")))
                 ]
             .
-            arguments: (arguments . (_) @element_type . (_) @element_options . (_)*)
-        )
+            arguments: (arguments . (_) @element_type . (_) @element_options . _* @leftParas )@auguments
+        )@CALL
             """
-        node = self.resources[resource_id]["node"]
-        elements = {}
-        eid = 0
+
+        elements = []
+        elements_mapper = {}
 
         matches = self.query(query, node)
 
         for m in matches:
             if (m[1]):
                 function = m[1]["function"]
-                element_type = m[1]["element_type"]
-                element_options = m[1]["element_options"]
-                self.resources[resource_id]["elements"] = {}
-                self.resources[resource_id]["elements"][eid] = m[1]
-                eid += 1
+                CALL = m[1]["CALL"]
+                element_type = m[1]["element_type"].text
+                element_options = m[1]["element_options"].text
+                leftParas = []
+                if ("leftParas" in m[1]):
+                    leftParas = m[1]["leftParas"]
 
-        # print(matches)
+                related_texts = self.get_text_from_element(element_options, leftParas)
+
+                elements.append({
+                    "identifier": CALL.start_point.row,
+                    "tag": element_type,
+                    "text": related_texts,
+                    "childrens": [],
+                    "parent": [],
+                    "options": element_options,
+                    "paras": leftParas
+                })
+                elements_mapper[CALL.byte_range] = len(elements) - 1
+
+        # 获取elements的关系
+        for idx, e in enumerate(elements):
+            paras = e["paras"]
+            for child in paras:
+                # 寻找当前element e的childrens
+                child_query = """
+                (call_expression
+                    function: [
+                        ((identifier) @function (#match? @function ".*createElement"))
+                        (member_expression property: ((property_identifier) @function (#match? @function ".*createElement")))
+                        ]
+                )@CALL
+                    """
+                child_matchs = self.query(child_query, child)
+
+                min_byte_range = None
+                for m in child_matchs:
+                    if (m[1]):
+                        byte_range = m[1]["CALL"].byte_range
+                        if (not min_byte_range):
+                            min_byte_range = byte_range
+                        elif (min_byte_range[0] > byte_range[0]):
+                            min_byte_range = byte_range
+
+                if (min_byte_range):
+                    target_element = elements_mapper[min_byte_range]
+                    elements[idx]["childrens"].append(target_element)
+                    elements[target_element]["parent"] = idx
+
+        # print(elements)
 
     def get_Navigator(self):
         screens = {}
@@ -212,11 +280,16 @@ class ASTParser:
                             print("[ERR]: screen not in resources", screenvars[object])
                             continue
                         if (property == b'default'):
+                            # screens[b"Home"] = (resource_id, Node)
                             screens[key] = (screenvars[object], target_resource_node)
                         # screenvar 相关的node为resource中的一个child node
                         else:
-                            pass
-
+                            # 寻找component：名为property
+                            query_property_var = f'(variable_declaration (variable_declarator name:(identifier) @var (#eq? @var "{property.decode()}") value:(_) @value))'
+                            property_var = self.query(query_property_var, self.root_node)
+                            for pv in property_var:
+                                if (pv[1]):
+                                    screens[key] = (screenvars[object], pv[1]["value"])
                 break
 
         if (initialRouteName not in screens):
@@ -265,7 +338,7 @@ class ASTParser:
 if __name__ == '__main__':
     parser = ASTParser(BASE_DIR + "/javascript/main.bundle")
     parser.start_parser()
-    # parser.get_elements(10004)
+    parser.get_elements(parser.resources[10007]["node"])
     parser.get_Navigator()
 
     if (not parser.screens or not parser.initialRouteName):
