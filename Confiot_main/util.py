@@ -60,6 +60,20 @@ def png_resize(file, resol_x, resol_y):
         return -1
 
 
+def decode_bytes(byte_data):
+    try:
+        # 尝试用UTF-8解码
+        decoded_str = byte_data.decode('utf-8')
+        return decoded_str
+    except UnicodeDecodeError:
+        try:
+            # 尝试用Unicode转义序列解码
+            unicode_str = byte_data.decode('unicode_escape')
+            return unicode_str
+        except UnicodeDecodeError:
+            print("无法解码字节数据")
+
+
 class Node:
 
     def __init__(self, name, description='', state=''):
@@ -108,8 +122,9 @@ class DirectedGraph:
         if (edge.end_node.name not in self.edges_dict[edge.start_node.name]):
             self.edges_dict[edge.start_node.name][edge.end_node.name] = []
 
-        for event in edge.event_strs:
-            self.edges_dict[edge.start_node.name][edge.end_node.name].append(event)
+        if (edge.event_strs):
+            for event in edge.event_strs:
+                self.edges_dict[edge.start_node.name][edge.end_node.name].append(event)
 
     def find_shortest_path(self, node_1: str, node_2: str):
 

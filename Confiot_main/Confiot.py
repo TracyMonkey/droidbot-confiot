@@ -555,6 +555,10 @@ class Confiot:
                     e = self.events[event_str]
 
 
+                    # 不包括返回的边
+                    if ("name=BACK" in event_str):
+                        continue
+
                     if ('view' in e):
                         config_id = str(e['view']['temp_id'])
                         parent = str(e['view']['parent'])
@@ -590,22 +594,6 @@ class Confiot:
                         else:
                             event_config[event_str] = self.uiTree.nodes_dict[config_id]
 
-                    # 不包括返回的边
-                    elif ("name=BACK" in event_str):
-                        if (target_state in config_nodes):
-                            continue
-                        else:
-                            if (src_state not in config_nodes):
-                                config_nodes[src_state] = []
-                            config_id = src_state[:5]
-                            if (config_id not in self.uiTree.nodes_dict):
-                                n = Node(config_id, description="BACK", state=src_state)
-                                self.uiTree.nodes_dict[config_id] = n
-                                event_config[event_str] = n
-                                self.uiTree.add_node(n)
-                            else:
-                                event_config[event_str] = self.uiTree.nodes_dict[config_id]
-                                config_nodes[src_state].append(self.uiTree.nodes_dict[config_id])
 
         indegree = {}
         for n in self.uiTree.nodes:
