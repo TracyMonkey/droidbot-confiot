@@ -3,6 +3,8 @@ import sys, os
 import tree_sitter_javascript as tsjavascript
 from tree_sitter import Language, Parser, Node
 from xml.dom import minidom
+from graphviz import Source
+import copy
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -91,10 +93,29 @@ class ASTParser:
         matches = q.matches(node)
         return matches
 
-    def Node_to_XML(self, node):
+    def elements_to_XML(self, elements):
         dom = minidom.Document()
         root_node = dom.createElement('UIHierarchy')
         dom.appendChild(root_node)
+
+        worklist = []
+        for idx, e in enumerate(elements):
+            if (not e["parent"]):
+                n = dom.createElement(e['tag'])
+                n.setAttribute("text", str(e["text"]))
+                root_node.appendChild(n)
+                worklist.append(e)
+
+        while (worklist):
+            e = worklist.pop()
+            for child_id in e["childrens"]:
+                child = elements[child_id]
+                n = dom.createElement(child['tag'])
+                n.setAttribute("text", str(child["text"]))
+                root_node.appendChild(n)
+                worklist.append(child)
+
+        return dom
 
     def get_text_from_element(self, options, Paras):
         results = {}
@@ -146,7 +167,7 @@ class ASTParser:
                     "tag": element_type,
                     "text": related_texts,
                     "childrens": [],
-                    "parent": [],
+                    "parent": None,
                     "options": element_options,
                     "paras": leftParas
                 })
@@ -180,6 +201,8 @@ class ASTParser:
                     target_element = elements_mapper[min_byte_range]
                     elements[idx]["childrens"].append(target_element)
                     elements[target_element]["parent"] = idx
+
+        return elements
 
         # print(elements)
 
@@ -277,7 +300,8 @@ class ASTParser:
                         if (screenvars[object] in self.resources):
                             target_resource_node = self.resources[screenvars[object]]["node"]
                         else:
-                            print("[ERR]: screen not in resources", screenvars[object])
+                            print("[DBG]: screen not in resources:", screenvars[object])
+                            screens[key] = (screenvars[object], None)
                             continue
                         if (property == b'default'):
                             # screens[b"Home"] = (resource_id, Node)
@@ -289,17 +313,26 @@ class ASTParser:
                             property_var = self.query(query_property_var, self.root_node)
                             for pv in property_var:
                                 if (pv[1]):
-                                    screens[key] = (screenvars[object], pv[1]["value"])
+                                    resource_id = -1
+                                    raw = pv[1]["value"].text
+                                    for r in self.resources:
+                                        if (raw in self.resources[r]["raw"].encode()):
+                                            resource_id = r
+                                    screens[key] = (resource_id, pv[1]["value"])
                 break
 
+        self.screens = screens
         if (initialRouteName not in screens):
             print("[ERR]: initialRouteName not in screens", initialRouteName, screens)
-
-        self.screens = screens
-        self.initialRouteName = initialRouteName
+            self.initialRouteName = "UNKNOWN"
+        else:
+            self.initialRouteName = initialRouteName
         return (screens, initialRouteName)
 
     def get_navigations(self, resource_id):
+        if ("navigations" in self.resources[resource_id]):
+            return self.resources[resource_id]["navigations"]
+
         node = self.resources[resource_id]["node"]
         # [byte, Node]
         navigations = []
@@ -327,8 +360,64 @@ class ASTParser:
                 else:
                     navigations.append(m[1]["destination"])
 
+        for dep in self.resources[resource_id]["dependencies"]:
+            if (dep not in self.resources):
+                continue
+            if ("navigations" in self.resources[dep]):
+                navigations.extend(self.resources[dep]["navigations"])
+            else:
+                dep_navigations = self.get_navigations(dep)
+                navigations.extend(dep_navigations)
+
         self.resources[resource_id]["navigations"] = navigations
         return navigations
+
+    def construct_UITree(self, out_dir):
+        self.uiTree = UITree()
+
+        for screen in self.screens:
+            resource_id, node = self.screens[screen]
+            if (node):
+                elements = self.get_elements(node)
+                xml = self.elements_to_XML(elements)
+                self.screens[screen] = (resource_id, node, elements, xml)
+                n = Node(screen, description=resource_id)
+                self.uiTree.add_node(n)
+            else:
+                n = Node(screen, description=screen)
+                self.uiTree.add_node(n)
+
+        tmp_nodes_dict = copy.deepcopy(self.uiTree.nodes_dict)
+        for screen, start_node in tmp_nodes_dict.items():
+            resource_id = self.screens[screen][0]
+            if (resource_id not in self.resources):
+                continue
+            for nav in self.resources[resource_id]["navigations"]:
+                if (isinstance(nav, bytes)):
+                    if (nav not in self.uiTree.nodes_dict):
+                        n = Node(nav, description=nav)
+                        self.uiTree.add_node(n)
+
+        for screen, start_node in self.uiTree.nodes_dict.items():
+            if (screen not in self.screens):
+                continue
+            resource_id = self.screens[screen][0]
+            if (resource_id not in self.resources):
+                continue
+            for nav in self.resources[resource_id]["navigations"]:
+                if (isinstance(nav, bytes)):
+                    if (nav in self.uiTree.nodes_dict):
+                        e = Edge(start_node, self.uiTree.nodes_dict[nav], None)
+                        self.uiTree.add_edge(e)
+
+        UITree.draw(self.uiTree, out_dir)
+        with open(f'{out_dir}/UITree.dot', 'r') as file:
+            dot_content = file.read()
+        # 使用 Source 创建图对象
+        dot = Source(dot_content)
+
+        # 渲染图并保存为 PNG 文件
+        dot.render(f'{out_dir}/UITree', format='png', view=False)
 
     # 获取每个resource内的interactions
     def get_interactions(s):
@@ -336,16 +425,21 @@ class ASTParser:
 
 
 if __name__ == '__main__':
-    parser = ASTParser(BASE_DIR + "/javascript/main.bundle")
+    parser = ASTParser(BASE_DIR + "/javascript/test/main.bundle")
     parser.start_parser()
-    parser.get_elements(parser.resources[10007]["node"])
+
+    # parser.get_elements(parser.resources[10007]["node"])
+    # 获取所有的pages/screens
     parser.get_Navigator()
 
     if (not parser.screens or not parser.initialRouteName):
         print("[ERR]: Get Navigator failed")
         sys.exit(1)
 
+    # 获取navigations
     for id in parser.resources:
         nav = parser.get_navigations(id)
-        if (nav):
-            print(nav)
+        # if (nav):
+        #     print(nav)
+
+    parser.construct_UITree(BASE_DIR + "/javascript/test/")

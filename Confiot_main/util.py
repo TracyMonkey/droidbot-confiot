@@ -122,8 +122,9 @@ class DirectedGraph:
         if (edge.end_node.name not in self.edges_dict[edge.start_node.name]):
             self.edges_dict[edge.start_node.name][edge.end_node.name] = []
 
-        for event in edge.event_strs:
-            self.edges_dict[edge.start_node.name][edge.end_node.name].append(event)
+        if (edge.event_strs):
+            for event in edge.event_strs:
+                self.edges_dict[edge.start_node.name][edge.end_node.name].append(event)
 
     def find_shortest_path(self, node_1: str, node_2: str):
 
