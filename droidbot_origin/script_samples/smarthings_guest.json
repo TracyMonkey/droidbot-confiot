@@ -1,0 +1,60 @@
+{
+  "views": {
+      "routines": {
+          "text": "Routines",
+          "class": ".*TextView"
+      },
+      "host": {
+          "text": "host",
+          "class": ".*TextView"
+      },
+      "manage_locations": {
+        "text": "Manage locations",
+        "class": ".*TextView"
+    }
+  },
+  "states": {
+      "routines_state": {
+          "activity": ".*SCMainActivity",
+          "views": [
+              "routines", "host", "manage_locations"
+          ]
+        }
+  },
+  "operations": {
+      "goto_routines": [
+          {
+              "event_type": "touch",
+              "target_view": "routines"
+          }
+      ],
+      "view_member": [
+          {
+              "event_type": "touch",
+              "target_view": "host"
+          }
+      ],
+      "click_manage_locations": [
+        {
+            "event_type": "touch",
+            "target_view": "manage_locations"
+        }
+    ]
+  },
+  "main": {
+      "routines_state": [
+          {
+            "op_id": "goto_routines",
+            "prob": 0.3
+          },
+          {
+            "op_id": "view_member",
+            "prob": 0.2
+          },
+          {
+            "op_id": "click_manage_locations",
+            "prob": 0.5
+          }
+      ]
+  }
+}

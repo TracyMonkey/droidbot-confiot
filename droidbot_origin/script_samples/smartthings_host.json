@@ -1,0 +1,46 @@
+{
+  "views": {
+      "routines": {
+          "text": "Routines",
+          "class": ".*TextView"
+      },
+      "host": {
+          "text": "host",
+          "class": ".*TextView"
+      }
+  },
+  "states": {
+      "routines_state": {
+          "activity": ".*SCMainActivity",
+          "views": [
+              "routines", "host"
+          ]
+        }
+  },
+  "operations": {
+      "goto_routines": [
+          {
+              "event_type": "touch",
+              "target_view": "routines"
+          }
+      ],
+      "view_member": [
+          {
+              "event_type": "touch",
+              "target_view": "host"
+          }
+      ]
+  },
+  "main": {
+      "routines_state": [
+          {
+            "op_id": "goto_routines",
+            "prob": 0.3
+          },
+          {
+            "op_id": "view_member",
+            "prob": 0.2
+          }
+      ]
+  }
+}
